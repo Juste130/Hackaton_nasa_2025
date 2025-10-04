@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './SearchBar.css';
 
-const SearchBar = ({ onSearch, placeholder = "Rechercher dans les publications NASA..." }) => {
+const SearchBar = ({ onSearch, placeholder = "Search NASA publications..." }) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e) => {

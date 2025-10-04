@@ -126,3 +126,25 @@
   color: white;
   transform: translateY(-2px);
 }
+/* Add to existing PublicationCard.css */
+.publication-card.selected {
+  border-left: 4px solid var(--accent);
+  background: rgba(0, 180, 229, 0.05);
+  transform: scale(1.02);
+}
+
+.app.dark .publication-card.selected {
+  background: rgba(0, 180, 229, 0.1);
+}
+
+.select-checkbox {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  transform: scale(1.2);
+}
+
+.publication-card {
+  position: relative;
+  transition: all 0.3s ease;
+}

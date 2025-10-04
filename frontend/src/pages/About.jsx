@@ -4,7 +4,7 @@ import './About.css';
 const About = () => {
   const teamMembers = [
     { name: "Obed", role: "Frontend Developer" },
-    { name: "Juste", role: "Frontend & Design" },
+    { name: "HOUEZO Juste", role: "Frontend & Design" },
     { name: "Regis", role: "Backend Developer" },
     { name: "Romuald", role: "Data Scientist / IA" },
     { name: "Ghilth", role: "IA Engineer & Presenter" }
@@ -13,43 +13,42 @@ const About = () => {
   return (
     <div className="about">
       <div className="about-header fade-in">
-        <h1>À Propos du Projet</h1>
-        <p>Notre mission est de rendre la recherche spatiale accessible à tous</p>
+        <h1>About the Project</h1>
+        <p>Our mission is to make space research accessible to everyone</p>
       </div>
 
       <div className="about-content">
         <section className="about-section">
-          <h2>🚀 Le Défi NASA Space Apps 2025</h2>
+          <h2>🚀 NASA Space Apps Challenge 2025</h2>
           <p>
-            Ce projet a été développé dans le cadre du hackathon NASA Space Apps 2025 
-            pour le défi "Construire un moteur de connaissances en biologie spatiale".
+            This project was developed for the NASA Space Apps 2025 hackathon 
+            for the challenge "Building a Space Biology Knowledge Engine".
           </p>
           <p>
-            Notre objectif est de transformer 608 publications scientifiques de la NASA 
-            en une base de connaissances interactive et accessible.
+            Our goal is to transform 608 NASA scientific publications into an interactive and accessible knowledge base.
           </p>
         </section>
 
         <section className="about-section">
-          <h2>🎯 Notre Mission</h2>
+          <h2>🎯 Our Mission</h2>
           <div className="mission-grid">
             <div className="mission-card">
-              <h3>Accessibilité</h3>
-              <p>Rendre la recherche spatiale compréhensible pour tous les publics</p>
+              <h3>Accessibility</h3>
+              <p>Making space research understandable for all audiences</p>
             </div>
             <div className="mission-card">
               <h3>Innovation</h3>
-              <p>Utiliser l'IA pour découvrir des insights cachés dans les données</p>
+              <p>Using AI to uncover hidden insights in data</p>
             </div>
             <div className="mission-card">
               <h3>Collaboration</h3>
-              <p>Faciliter la découverte et la collaboration scientifique</p>
+              <p>Facilitating scientific discovery and collaboration</p>
             </div>
           </div>
         </section>
 
         <section className="about-section">
-          <h2>👥 Notre Équipe</h2>
+          <h2>👥 Our Team</h2>
           <div className="team-grid">
             {teamMembers.map((member, index) => (
               <div key={index} className="team-card fade-in">
@@ -66,9 +65,7 @@ const About = () => {
         <section className="about-section disclaimer">
           <h2>📝 Disclaimer</h2>
           <p>
-            Cette plateforme a été créée dans le cadre d'un hackathon et n'est pas 
-            un produit officiel de la NASA. Les données sources sont fournies par 
-            la NASA et accessibles au public.
+            This platform was created during a hackathon and is not an official NASA product. Source data is provided by NASA and publicly accessible.
           </p>
         </section>
       </div>

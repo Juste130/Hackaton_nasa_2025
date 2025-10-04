@@ -31,7 +31,7 @@ const PublicationCard = ({ publication }) => {
           className="expand-btn"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? 'Voir moins' : 'Voir plus'}
+          {isExpanded ? 'See less' : 'See more'}
         </button>
       </div>
 
@@ -49,8 +49,8 @@ const PublicationCard = ({ publication }) => {
       </div>
 
       <div className="card-actions">
-        <button className="action-btn">📖 Lire l'étude</button>
-        <button className="action-btn">🤖 Résumer avec IA</button>
+        <button className="action-btn">📖 View NASA Publication</button>
+        <button className="action-btn">🤖 Research Summary</button>
       </div>
     </div>
   );

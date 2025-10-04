@@ -1,0 +1,193 @@
+.knowledge-graph {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .knowledge-graph {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.graph-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(11, 61, 145, 0.05);
+}
+
+.app.dark .graph-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.graph-header h3 {
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.graph-header p {
+  color: var(--text-dark);
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.app.dark .graph-header p {
+  color: var(--text-light);
+}
+
+.graph-legend {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-color.concept {
+  background: var(--primary);
+}
+
+.legend-color.publication {
+  background: var(--accent);
+}
+
+.graph-container {
+  flex: 1;
+  padding: 1rem;
+  background: rgba(11, 61, 145, 0.02);
+  overflow: hidden;
+}
+
+.app.dark .graph-container {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 8px;
+}
+
+/* Graph Nodes */
+.graph-node {
+  transition: all 0.3s ease;
+}
+
+.graph-node-concept {
+  fill: var(--primary);
+  stroke: white;
+  stroke-width: 2;
+  filter: drop-shadow(0 2px 4px rgba(11, 61, 145, 0.3));
+}
+
+.graph-node-publication {
+  fill: var(--accent);
+  stroke: white;
+  stroke-width: 1;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.graph-node-publication:hover {
+  fill: var(--secondary);
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(252, 61, 33, 0.4));
+}
+
+/* Graph Links */
+.graph-link {
+  stroke: rgba(11, 61, 145, 0.3);
+  stroke-width: 1;
+  transition: all 0.3s ease;
+}
+
+.app.dark .graph-link {
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+/* Graph Labels */
+.graph-label {
+  font-size: 10px;
+  fill: var(--text-dark);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.app.dark .graph-label {
+  fill: var(--text-light);
+}
+
+.graph-tips {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 180, 229, 0.1);
+  border-top: 1px solid rgba(0, 180, 229, 0.2);
+}
+
+.app.dark .graph-tips {
+  background: rgba(0, 180, 229, 0.05);
+  border-top: 1px solid rgba(0, 180, 229, 0.1);
+}
+
+.graph-tips p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.app.dark .graph-tips p {
+  color: var(--text-light);
+}
+
+/* Loading State */
+.graph-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.graph-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(11, 61, 145, 0.2);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .graph-header {
+    padding: 1rem;
+  }
+  
+  .graph-legend {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .graph-container {
+    padding: 0.5rem;
+  }
+  
+  .graph-label {
+    font-size: 8px;
+  }
+}

@@ -11,7 +11,7 @@ const Header = ({ currentPage, onNavigate, isDarkMode, onThemeToggle }) => {
         </div>
         
         <nav className="nav">
-          {['home', 'explorer', 'chat', 'about', 'resources'].map(page => (
+          {['home', 'explorer', 'about', 'resources'].map(page => (
             <button
               key={page}
               className={`nav-btn ${currentPage === page ? 'active' : ''}`}

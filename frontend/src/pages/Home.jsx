@@ -23,10 +23,10 @@ const Home = ({ onNavigate }) => {
       <section className="hero fade-in">
         <div className="hero-content">
           <h1 className="hero-title">
-            Explorez les <span className="highlight">secrets</span> de la biologie spatiale
+            Explore the <span className="highlight">mysteries</span> of space biology
           </h1>
           <p className="hero-subtitle">
-            Découvrez 60 ans de recherche NASA grâce à l'intelligence artificielle
+            Discover 60 years of NASA research
           </p>
           
           <SearchBar onSearch={handleSearch} />
@@ -36,13 +36,13 @@ const Home = ({ onNavigate }) => {
               className="btn btn-primary"
               onClick={() => onNavigate('explorer')}
             >
-              Commencer l'Exploration
+              Start Exploring
             </button>
             <button 
               className="btn btn-secondary"
               onClick={() => onNavigate('chat')}
             >
-              🤖 Essayer le Chatbot
+              🤖 Ask Questions Here
             </button>
           </div>
         </div>
@@ -58,27 +58,27 @@ const Home = ({ onNavigate }) => {
       <section className="features">
         <div className="feature-card">
           <div className="feature-icon">🤖</div>
-          <h3>Interrogez avec vos mots</h3>
-          <p>Notre IA comprend vos questions et trouve les réponses dans les publications NASA</p>
+          <h3>Ask in Your Own Words</h3>
+          <p>Our technology understands natural language and locates relevant NASA science</p>
         </div>
         
         <div className="feature-card">
           <div className="feature-icon">🔍</div>
-          <h3>Découvrez des connexions</h3>
-          <p>Visualisez les liens entre les études, les organismes et les effets spatiaux</p>
+          <h3>Discover Connections</h3>
+          <p>Explore connections between space science and living things</p>
         </div>
         
         <div className="feature-card">
           <div className="feature-icon">📚</div>
-          <h3>Sources fiables</h3>
-          <p>Chaque information est sourcée avec les publications originales de la NASA</p>
+          <h3>Credible References</h3>
+          <p>All content is referenced to primary NASA publications</p>
         </div>
       </section>
 
       {/* Quick Results */}
       {searchResults.length > 0 && (
         <section className="quick-results fade-in">
-          <h2>Résultats de recherche ({searchResults.length})</h2>
+          <h2>Search Results ({searchResults.length})</h2>
           <div className="results-grid">
             {searchResults.slice(0, 3).map(pub => (
               <div key={pub.id} className="result-card">
@@ -93,7 +93,7 @@ const Home = ({ onNavigate }) => {
               className="btn btn-secondary"
               onClick={() => onNavigate('explorer')}
             >
-              Voir tous les résultats
+              See All Results
             </button>
           )}
         </section>

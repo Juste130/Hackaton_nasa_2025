@@ -1,0 +1,295 @@
+.data-table {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .data-table {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.table-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(11, 61, 145, 0.05);
+}
+
+.app.dark .table-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table-header h3 {
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.table-header p {
+  color: var(--text-dark);
+  opacity: 0.8;
+  margin: 0;
+}
+
+.app.dark .table-header p {
+  color: var(--text-light);
+}
+
+.table-container {
+  flex: 1;
+  overflow-x: auto;
+  background: rgba(11, 61, 145, 0.02);
+}
+
+.app.dark .table-container {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.publications-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.publications-table th,
+.publications-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .publications-table th,
+.app.dark .publications-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.publications-table th {
+  background: rgba(11, 61, 145, 0.1);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app.dark .publications-table th {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.publications-table th.sortable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.publications-table th.sortable:hover {
+  background: rgba(11, 61, 145, 0.2);
+}
+
+.app.dark .publications-table th.sortable:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sort-icon {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.publications-table tbody tr {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.publications-table tbody tr:hover {
+  background: rgba(11, 61, 145, 0.05);
+}
+
+.app.dark .publications-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.publications-table tbody tr.selected {
+  background: rgba(11, 61, 145, 0.1);
+  border-left: 3px solid var(--primary);
+}
+
+.app.dark .publications-table tbody tr.selected {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Specific Column Styles */
+.title-cell {
+  max-width: 300px;
+}
+
+.title-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title-content strong {
+  color: var(--primary);
+  line-height: 1.3;
+}
+
+.journal {
+  font-size: 0.8rem;
+  color: var(--text-dark);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.app.dark .journal {
+  color: var(--text-light);
+}
+
+.authors-list {
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.app.dark .authors-list {
+  color: var(--text-light);
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tag.organism {
+  background: rgba(0, 180, 229, 0.2);
+  color: var(--accent);
+}
+
+.tag.phenomenon {
+  background: rgba(252, 61, 33, 0.2);
+  color: var(--secondary);
+}
+
+.citations-cell {
+  text-align: center;
+}
+
+.citations-count {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: rgba(11, 61, 145, 0.1);
+  color: var(--primary);
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.app.dark .citations-count {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Pagination */
+.table-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .table-pagination {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pagination-btn {
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--accent);
+  transform: translateY(-2px);
+}
+
+.pagination-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.app.dark .pagination-btn:disabled {
+  background: #666;
+}
+
+.pagination-info {
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.app.dark .pagination-info {
+  color: var(--text-light);
+}
+
+.table-footer {
+  padding: 1rem 1.5rem;
+  background: rgba(11, 61, 145, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.app.dark .table-footer {
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table-footer p {
+  margin: 0;
+  color: var(--text-dark);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.app.dark .table-footer p {
+  color: var(--text-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-header {
+    padding: 1rem;
+  }
+  
+  .publications-table th,
+  .publications-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .title-cell {
+    max-width: 200px;
+  }
+  
+  .table-pagination {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

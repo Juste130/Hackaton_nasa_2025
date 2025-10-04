@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
+import ChatWidget from './components/ChatWidget';
 import Home from './pages/Home';
 import Explorer from './pages/Explorer';
-import Chat from './pages/Chat';
 import About from './pages/About';
 import Resources from './pages/Resources';
 import './App.css';
@@ -14,7 +14,6 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'explorer': return <Explorer />;
-      case 'chat': return <Chat />;
       case 'about': return <About />;
       case 'resources': return <Resources />;
       default: return <Home onNavigate={setCurrentPage} />;
@@ -30,8 +29,9 @@ function App() {
         onThemeToggle={() => setIsDarkMode(!isDarkMode)}
       />
       <main className="main-content">
-        {renderPage()}
-      </main>
+            {renderPage()}
+        </main>
+        <ChatWidget />
     </div>
   );
 }
