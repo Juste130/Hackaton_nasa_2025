@@ -1,21 +1,9 @@
-import React, { useState } from 'react';
-import SearchBar from '../components/SearchBar';
-import { publications } from '../data/mockData';
+import React from 'react';
+import { useChat } from '../context/ChatContext';
 import './Home.css';
 
 const Home = ({ onNavigate }) => {
-  const [searchResults, setSearchResults] = useState([]);
-
-  const handleSearch = (query) => {
-    const results = publications.filter(pub => 
-      pub.title.toLowerCase().includes(query.toLowerCase()) ||
-      pub.abstract.toLowerCase().includes(query.toLowerCase()) ||
-      pub.authors.some(author => 
-        author.toLowerCase().includes(query.toLowerCase())
-      )
-    );
-    setSearchResults(results);
-  };
+  const { openChat } = useChat();
 
   return (
     <div className="home">
@@ -29,8 +17,6 @@ const Home = ({ onNavigate }) => {
             Discover 60 years of NASA research
           </p>
           
-          <SearchBar onSearch={handleSearch} />
-          
           <div className="hero-actions">
             <button 
               className="btn btn-primary"
@@ -40,7 +26,7 @@ const Home = ({ onNavigate }) => {
             </button>
             <button 
               className="btn btn-secondary"
-              onClick={() => onNavigate('chat')}
+              onClick={openChat}
             >
               🤖 Ask Questions Here
             </button>
@@ -74,30 +60,6 @@ const Home = ({ onNavigate }) => {
           <p>All content is referenced to primary NASA publications</p>
         </div>
       </section>
-
-      {/* Quick Results */}
-      {searchResults.length > 0 && (
-        <section className="quick-results fade-in">
-          <h2>Search Results ({searchResults.length})</h2>
-          <div className="results-grid">
-            {searchResults.slice(0, 3).map(pub => (
-              <div key={pub.id} className="result-card">
-                <h4>{pub.title}</h4>
-                <p className="authors">{pub.authors.join(', ')}</p>
-                <p className="abstract">{pub.abstract.substring(0, 150)}...</p>
-              </div>
-            ))}
-          </div>
-          {searchResults.length > 3 && (
-            <button 
-              className="btn btn-secondary"
-              onClick={() => onNavigate('explorer')}
-            >
-              See All Results
-            </button>
-          )}
-        </section>
-      )}
     </div>
   );
 };

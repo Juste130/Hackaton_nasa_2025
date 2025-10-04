@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatWidget.css';
+import { useChat } from '../context/ChatContext';
 
 const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
+    const { isChatOpen, closeChat } = useChat();
+//   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -61,15 +63,16 @@ const ChatWidget = () => {
     "What are the radiation risks for astronauts going to Mars?"
   ];
 
-  const toggleChat = () => {
-    setIsOpen(!isOpen);
-  };
+//   const toggleChat = () => {
+//     setIsOpen(!isOpen);
+//   };
+    const { toggleChat } = useChat();
 
   return (
     <>
       {/* Floating Chat Button */}
       <button 
-        className={`chat-widget-button ${isOpen ? 'hidden' : ''}`}
+        className={`chat-widget-button ${isChatOpen ? 'hidden' : ''}`}
         onClick={toggleChat}
       >
         <span className="chat-icon">🤖</span>
@@ -77,8 +80,8 @@ const ChatWidget = () => {
       </button>
 
       {/* Chat Modal */}
-      {isOpen && (
-        <div className="chat-modal-overlay" onClick={() => setIsOpen(false)}>
+      {isChatOpen && (
+        <div className="chat-modal-overlay" onClick={closeChat}>
           <div className="chat-modal-content" onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="chat-header">
@@ -89,7 +92,7 @@ const ChatWidget = () => {
                   <p>Space Biology Expert</p>
                 </div>
               </div>
-              <button className="close-button" onClick={() => setIsOpen(false)}>
+              <button className="close-button" onClick={closeChat}>
                 ×
               </button>
             </div>

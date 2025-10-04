@@ -386,6 +386,90 @@
     height: 400px;
   }
 }
+/* Styles pour les inputs d'année */
+.year-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.year-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.year-input-group label {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+
+.year-input {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.app.dark .year-input {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: #555;
+}
+
+.year-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(11, 61, 145, 0.1);
+}
+
+.year-input:invalid {
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(252, 61, 33, 0.1);
+}
+
+.year-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(11, 61, 145, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
+}
+
+.app.dark .year-info {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.year-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.app.dark .year-info p {
+  color: var(--text-light);
+}
+
+.year-count {
+  font-weight: 600;
+  color: var(--primary) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .year-inputs {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .year-input {
+    padding: 0.6rem;
+  }
+}
 
 @media (max-width: 480px) {
   .selection-controls {

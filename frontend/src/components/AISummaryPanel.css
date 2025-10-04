@@ -41,13 +41,17 @@
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
 }
+.ai-summary-header-content {
+  display: flex;
+  flex-direction: column;
+}
 
-.header-content h2 {
+.ai-summary-header-content h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.8rem;
 }
 
-.header-content p {
+.ai-summary-header-content p {
   margin: 0;
   opacity: 0.9;
   font-size: 1rem;

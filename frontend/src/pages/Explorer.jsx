@@ -9,21 +9,22 @@ import './Explorer.css';
 const Explorer = () => {
   const [activeView, setActiveView] = useState('cards'); // 'cards', 'graph', 'table'
   const [filteredPublications, setFilteredPublications] = useState(publications);
+  const years = publications.map(pub => new Date(pub.date).getFullYear());
+  const minYear = Math.min(...years);
+  const maxYear = Math.max(...years);
+  const currentYear = new Date().getFullYear();
   const [selectedFilters, setSelectedFilters] = useState({
     organisms: [],
     phenomena: [],
     systems: [],
     missions: [],
-    yearRange: [1980, 2024]
+    yearRange: [minYear, currentYear]
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPublications, setSelectedPublications] = useState([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
 
   // Year range for slider
-  const years = publications.map(pub => new Date(pub.date).getFullYear());
-  const minYear = Math.min(...years);
-  const maxYear = Math.max(...years);
 
   useEffect(() => {
     let results = publications;
@@ -104,7 +105,7 @@ const Explorer = () => {
       phenomena: [],
       systems: [],
       missions: [],
-      yearRange: [minYear, maxYear]
+      yearRange: [minYear, currentYear]
     });
     setSearchQuery('');
     setSelectedPublications([]);
@@ -134,33 +135,49 @@ const Explorer = () => {
             />
           </div>
 
-          {/* Year Range Slider */}
+          {/* Year Range Filter */}
           <div className="filter-group">
             <h3>Publication Year</h3>
-            <div className="year-range">
-              <div className="year-labels">
-                <span>{selectedFilters.yearRange[0]}</span>
-                <span>{selectedFilters.yearRange[1]}</span>
+            <div className="year-inputs">
+              <div className="year-input-group">
+                <label htmlFor="year-from">From:</label>
+                <input
+                  id="year-from"
+                  type="number"
+                  min={minYear}
+                  max={maxYear}
+                  value={selectedFilters.yearRange[0]}
+                  onChange={(e) => {
+                    let newStart = parseInt(e.target.value) || minYear;
+                    // Validation : s'assurer que l'année est dans la plage valide
+                    newStart = Math.max(minYear, Math.min(newStart, selectedFilters.yearRange[1]));
+                    handleYearRangeChange([newStart, selectedFilters.yearRange[1]]);
+                  }}
+                  className="year-input"
+                  placeholder={minYear.toString()}
+                />
               </div>
-              <input
-                type="range"
-                min={minYear}
-                max={maxYear}
-                value={selectedFilters.yearRange[0]}
-                onChange={(e) => handleYearRangeChange([parseInt(e.target.value), selectedFilters.yearRange[1]])}
-                className="range-slider"
-              />
-              <input
-                type="range"
-                min={minYear}
-                max={maxYear}
-                value={selectedFilters.yearRange[1]}
-                onChange={(e) => handleYearRangeChange([selectedFilters.yearRange[0], parseInt(e.target.value)])}
-                className="range-slider"
-              />
+              
+              <div className="year-input-group">
+                <label htmlFor="year-to">To:</label>
+                <input
+                  id="year-to"
+                  type="number"
+                  min={minYear}
+                  max={maxYear}
+                  value={selectedFilters.yearRange[1]}
+                  onChange={(e) => {
+                    let newEnd = parseInt(e.target.value) || maxYear;
+                    // Validation : s'assurer que l'année est dans la plage valide
+                    newEnd = Math.max(selectedFilters.yearRange[0], Math.min(newEnd, maxYear));
+                    handleYearRangeChange([selectedFilters.yearRange[0], newEnd]);
+                  }}
+                  className="year-input"
+                  placeholder={maxYear.toString()}
+                />
+              </div>
             </div>
           </div>
-
           {/* Dynamic Filters */}
           {Object.entries(filters).map(([category, options]) => (
             <div key={category} className="filter-group">
@@ -229,7 +246,7 @@ const Explorer = () => {
                     className="ai-summary-btn"
                     onClick={() => setShowAIPanel(true)}
                   >
-                    🤖 AI Summary ({selectedPublications.length})
+                    🤖 Summary ({selectedPublications.length})
                   </button>
                 )}
               </div>
@@ -247,6 +264,11 @@ const Explorer = () => {
                       publication={publication}
                       isSelected={selectedPublications.includes(publication.id)}
                       onSelect={() => handlePublicationSelect(publication.id)}
+                      onClickForSummary={() => {
+                        setSelectedPublications([publication.id]);
+                        setShowAIPanel(true);
+                      }
+                      }
                     />
                   ))}
                 </div>

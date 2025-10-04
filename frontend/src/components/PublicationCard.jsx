@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import './PublicationCard.css';
 
-const PublicationCard = ({ publication }) => {
+const PublicationCard = ({ publication, isSelected, onSelect, onClickForSummary }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="publication-card fade-in">
+    <div className={`publication-card fade-in ${isSelected ? 'selected' : ''}`}>
       <div className="card-header">
         <h3 className="publication-title">{publication.title}</h3>
         <div className="publication-meta">
@@ -50,7 +50,9 @@ const PublicationCard = ({ publication }) => {
 
       <div className="card-actions">
         <button className="action-btn">📖 View NASA Publication</button>
-        <button className="action-btn">🤖 Research Summary</button>
+        <button className="action-btn" onClick={onClickForSummary}>
+          🤖 Research Summary
+        </button>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Explorer from './pages/Explorer';
 import About from './pages/About';
 import Resources from './pages/Resources';
+import { ChatProvider } from './context/ChatContext'
 import './App.css';
 
 function App() {
@@ -21,18 +22,20 @@ function App() {
   };
 
   return (
-    <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
-      <Header 
-        currentPage={currentPage} 
-        onNavigate={setCurrentPage}
-        isDarkMode={isDarkMode}
-        onThemeToggle={() => setIsDarkMode(!isDarkMode)}
-      />
-      <main className="main-content">
-            {renderPage()}
-        </main>
-        <ChatWidget />
-    </div>
+    <ChatProvider>
+      <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
+        <Header 
+          currentPage={currentPage} 
+          onNavigate={setCurrentPage}
+          isDarkMode={isDarkMode}
+          onThemeToggle={() => setIsDarkMode(!isDarkMode)}
+        />
+        <main className="main-content">
+              {renderPage()}
+          </main>
+          <ChatWidget />
+      </div>
+    </ChatProvider>
   );
 }
 

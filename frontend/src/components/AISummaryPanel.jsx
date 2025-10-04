@@ -15,11 +15,10 @@ const AISummaryPanel = ({ publications, onClose }) => {
     return { uniquePhenomena: phenomena, uniqueSystems: systems };
   }, [publications]);
 
-  // Use useCallback to prevent unnecessary re-renders
-  const generateAISummary = useCallback(async () => {
+  useEffect(() => {
     setIsGenerating(true);
     
-    // Simulate AI API call with cleanup
+    // Simulate AI API call
     const timeoutId = setTimeout(() => {
       const mockSummary = `Based on analysis of ${publications.length} selected publications, I've identified several key patterns in space biology research:
 
@@ -59,14 +58,9 @@ The selected studies demonstrate significant advances in understanding how space
       setIsGenerating(false);
     }, 3000);
 
-    // Cleanup function
+    // ✅ Retournez DIRECTEMENT la fonction de cleanup
     return () => clearTimeout(timeoutId);
   }, [publications, uniquePhenomena, uniqueSystems]);
-
-  useEffect(() => {
-    const cleanup = generateAISummary();
-    return cleanup;
-  }, [generateAISummary]);
 
   const downloadSummary = useCallback(() => {
     const content = `
@@ -129,8 +123,8 @@ ${publications.map(pub => {
       <div className="ai-summary-panel" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="ai-summary-header">
-          <div className="header-content">
-            <h2>🤖 AI Research Summary</h2>
+          <div className="ai-summary-header-content">
+            <h2>🤖 Research Summary</h2>
             <p>Analysis of {publications.length} selected publication{publications.length !== 1 ? 's' : ''}</p>
           </div>
           <button 
