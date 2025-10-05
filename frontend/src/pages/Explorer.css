@@ -449,3 +449,16 @@
     padding: 0.5rem;
   }
 }
+
+/* Exemple pour la page Explorer */
+.explorer-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.explorer-main-content {
+  flex: 1;
+  min-height: 0; /* Important pour permettre au flex child de se réduire */
+  position: relative;
+}

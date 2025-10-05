@@ -17,20 +17,24 @@
 
 .graph-container {
   width: 100%;
-  height: 100%;
   flex: 1; /* Prend tout l'espace disponible */
   position: relative;
   overflow: hidden;
+  background: #fafafa; /* Couleur temporaire pour debug */
+  /* border: 2px solid red; Bordure temporaire pour debug */
+  min-height: 400px; /* Hauteur minimale pour s'assurer qu'il soit visible */
 }
 
 .graph-visualization-content {
   width: 100%;
-  height: 100%;
+  height: 100vh; /* Changé de 100% à 100vh pour forcer la hauteur complète */
   position: relative;
   background: white;
-  overflow: hidden; /* Important pour éviter le débordement */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  z-index: 0; /* Ajouté pour le contexte de pile */
+  min-height: 0; /* Important pour le flex */
 }
 
 .error-message {
@@ -54,7 +58,7 @@
   color: #c33;
   padding: 1rem;
   border-radius: 4px;
-  z-index: 1000;
+  z-index: 20; /* Augmenté pour être visible */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   max-width: 90%;
 }
@@ -82,7 +86,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 30; /* Le plus élevé pour être au-dessus de tout */
 }
 
 .loading-spinner {
@@ -124,7 +128,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   font-size: 0.8rem;
   backdrop-filter: blur(5px);
-  z-index: 100;
+  z-index: 10; /* Augmenté pour être au-dessus du graphique */
   max-width: 200px;
 }
 
@@ -154,7 +158,7 @@
   left: 20px;
   display: flex;
   gap: 0.5rem;
-  z-index: 100;
+  z-index: 10; /* Augmenté pour être au-dessus du graphique */
 }
 
 .graph-toolbar button {
