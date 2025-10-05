@@ -6,32 +6,26 @@ const Resources = () => {
     {
       title: "Référentiel des Publications en Biosciences",
       description: "Les 608 publications scientifiques utilisées dans ce projet",
-      link: "#",
+      link: "https://github.com/jgalazka/SB_publications/tree/main",
       category: "📚 Publications"
     },
     {
       title: "NASA Open Science Data Repository (OSDR)",
       description: "Données primaires et métadonnées des études biologiques",
-      link: "#",
+      link: "https://www.nasa.gov/osdr/",
       category: "💾 Données"
     },
     {
       title: "Bibliothèque des Sciences de la Vie Spatiale",
       description: "Publications supplémentaires pertinentes sur la biologie spatiale",
-      link: "#",
+      link: "https://public.ksc.nasa.gov/nslsl/",
       category: "📚 Publications"
     },
     {
       title: "Cahier des Tâches de la NASA (NSPIRES)",
       description: "Informations sur les subventions ayant financé ces études",
-      link: "#",
+      link: "https://taskbook.nasaprs.com/tbp/welcome.cfm",
       category: "📋 Administration"
-    },
-    {
-      title: "Division des Sciences Biologiques et Physiques",
-      description: "Portail officiel de la division scientifique de la NASA",
-      link: "#",
-      category: "🌐 Portail"
     }
   ];
 
