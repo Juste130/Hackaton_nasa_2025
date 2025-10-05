@@ -3,11 +3,11 @@ import './About.css';
 
 const About = () => {
   const teamMembers = [
-    { name: "Obed", role: "Frontend Developer" },
-    { name: "HOUEZO Juste", role: "Frontend & Design" },
-    { name: "Regis", role: "Backend Developer" },
-    { name: "Romuald", role: "Data Scientist / IA" },
-    { name: "Ghilth", role: "IA Engineer & Presenter" }
+    { name: "Obed AGBOHOUN", role: "Frontend Developer" },
+    { name: "Juste HOUEZO", role: "Frontend & Design" },
+    { name: "Régis KIKI", role: "Backend Developer" },
+    { name: "Romuald AMEGBEDJI", role: "Data Scientist / IA" },
+    { name: "Ghilth GBAGUIDI", role: "IA Engineer & Presenter" }
   ];
 
   return (
