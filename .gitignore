@@ -14,7 +14,7 @@ aislop.py
 fix*.py
 challenge.md
 strategy.md
-*.txt
+#*.txt
 migrate*
 quick.py
 update*
