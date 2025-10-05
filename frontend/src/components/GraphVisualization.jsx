@@ -41,7 +41,25 @@ const GraphVisualization = ({ graphData, loading, error, onNodeClick }) => {
   });
 
   return (
-    <div className="graph-visualization-content">
+    <div className="graph-visualization-content" style={{ 
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <div 
+        ref={containerRef} 
+        className="graph-container"
+        style={{
+          flex: 1,
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          zIndex: 1
+        }}
+      />
+
       {error && (
         <div className="graph-error-message">
           <p>Error: {error}</p>
@@ -56,11 +74,6 @@ const GraphVisualization = ({ graphData, loading, error, onNodeClick }) => {
           </div>
         </div>
       )}
-
-      <div 
-        ref={containerRef} 
-        className="graph-container"
-      />
 
       <GraphLegend />
 
