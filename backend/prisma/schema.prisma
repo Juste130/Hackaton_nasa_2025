@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model authors {
+  id                  String                @id @default(uuid()) @db.Uuid
+  firstname           String?               @db.VarChar(255)
+  lastname            String                @db.VarChar(255)
+  email               String?               @db.VarChar(255)
+  orcid               String?               @db.VarChar(50)
+  created_at          DateTime              @db.Timestamp(6)
+  publication_authors publication_authors[]
+}
+
+model entities {
+  id                   String                 @id @default(uuid()) @db.Uuid
+  entity_type          String                 @db.VarChar(50)
+  entity_name          String                 @db.VarChar(255)
+  normalized_name      String?                @db.VarChar(255)
+  description          String?
+  publication_entities publication_entities[]
+}
+
+model keywords {
+  id                   String                 @id @default(uuid()) @db.Uuid
+  keyword              String                 @unique @db.VarChar(255)
+  category             String?                @db.VarChar(100)
+  publication_keywords publication_keywords[]
+}
+
+model mesh_terms {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  term                   String                   @unique @db.VarChar(255)
+  tree_number            String?                  @db.VarChar(50)
+  publication_mesh_terms publication_mesh_terms[]
+}
+
+model publication_authors {
+  publication_id String       @db.Uuid
+  author_id      String       @db.Uuid
+  author_order   Int
+  affiliation    String?
+  authors        authors      @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  publications   publications @relation(fields: [publication_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([publication_id, author_id])
+}
+
+model publication_entities {
+  id             String       @id @default(uuid()) @db.Uuid
+  publication_id String       @db.Uuid
+  entity_id      String       @db.Uuid
+  confidence     Float?
+  context        String?
+  entities       entities     @relation(fields: [entity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  publications   publications @relation(fields: [publication_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model publication_keywords {
+  publication_id String       @db.Uuid
+  keyword_id     String       @db.Uuid
+  keywords       keywords     @relation(fields: [keyword_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  publications   publications @relation(fields: [publication_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([publication_id, keyword_id])
+}
+
+model publication_mesh_terms {
+  publication_id String       @db.Uuid
+  mesh_term_id   String       @db.Uuid
+  is_major_topic Boolean
+  mesh_terms     mesh_terms   @relation(fields: [mesh_term_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  publications   publications @relation(fields: [publication_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([publication_id, mesh_term_id])
+}
+
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model publications {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  pmcid                  String                   @unique @db.VarChar(20)
+  pmid                   String?                  @db.VarChar(20)
+  doi                    String?                  @db.VarChar(255)
+  title                  String
+  abstract               String?
+  publication_date       DateTime?                @db.Date
+  journal                String?                  @db.VarChar(500)
+  created_at             DateTime                 @db.Timestamp(6)
+  updated_at             DateTime                 @db.Timestamp(6)
+  abstract_generated     String?
+  generation_type        String?                  @db.VarChar(50)
+  key_findings           String?
+  methodology            String?
+  full_text_content      String?
+  embedding              Unsupported("vector")?
+  publication_authors    publication_authors[]
+  publication_entities   publication_entities[]
+  publication_keywords   publication_keywords[]
+  publication_mesh_terms publication_mesh_terms[]
+  text_sections          text_sections[]
+
+  @@index([embedding])
+}
+
+model text_sections {
+  id             String                 @id @default(uuid()) @db.Uuid
+  publication_id String                 @db.Uuid
+  section_name   String                 @db.VarChar(255)
+  content        String
+  section_order  Int?
+  embedding      Unsupported("vector")?
+  publications   publications           @relation(fields: [publication_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([embedding])
+}
