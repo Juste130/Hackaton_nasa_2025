@@ -42,7 +42,7 @@ const Explorer = () => {
       try {
         setLoadingPublications(true);
         const baseUrl =
-          process.env.REACT_APP_API_URL || "http://localhost:3001";
+          process.env.REACT_APP_API_URL || "http://localhost:3000";
         const res = await fetch(`${baseUrl}/publications`, {
           signal: controller.signal,
         });
