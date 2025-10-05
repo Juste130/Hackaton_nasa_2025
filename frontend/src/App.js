@@ -23,18 +23,18 @@ function App() {
 
   return (
     <ChatProvider>
-      <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
-        <Header 
-          currentPage={currentPage} 
-          onNavigate={setCurrentPage}
-          isDarkMode={isDarkMode}
-          onThemeToggle={() => setIsDarkMode(!isDarkMode)}
-        />
-        <main className="main-content">
-              {renderPage()}
-          </main>
-          <ChatWidget />
-      </div>
+    <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
+      <Header 
+        currentPage={currentPage} 
+        onNavigate={setCurrentPage}
+        isDarkMode={isDarkMode}
+        onThemeToggle={() => setIsDarkMode(!isDarkMode)}
+      />
+      <main className="main-content">
+            {renderPage()}
+        </main>
+        <ChatWidget />
+    </div>
     </ChatProvider>
   );
 }
