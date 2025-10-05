@@ -1,3 +1,4 @@
+#--find-links https://download.pytorch.org/whl/cpu
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.15
 aiosignal==1.4.0
@@ -89,8 +90,11 @@ tenacity==9.1.2
 threadpoolctl==3.6.0
 tiktoken==0.11.0
 tokenizers==0.22.1
+#torch==2.8.0+cpu
+#torchvision==0.23.0+cpu
 torch==2.8.0+cpu
 torchvision==0.23.0+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
 tqdm==4.67.1
 transformers==4.57.0
 typing-inspection==0.4.2
