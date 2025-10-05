@@ -20,3 +20,4 @@ quick.py
 update*
 verify*
 *.db
+frontend/node_modules
