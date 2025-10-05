@@ -10,6 +10,7 @@ This project provides intelligent analysis of NASA space biology research throug
 - **AI Assistants**: Multiple specialized AI services for different research tasks
 - **Session Management**: Persistent conversation sessions
 - **REST API**: FastAPI-based web services
+- **Interactive Visualization**: D3.js-based graph explorer frontend
 
 ## Architecture
 
@@ -32,6 +33,11 @@ This project provides intelligent analysis of NASA space biology research throug
          │                FastAPI                          │
          │              REST API                           │
          └─────────────────────────────────────────────────┘
+                                 │
+         ┌─────────────────────────────────────────────────┐
+         │              Frontend                           │
+         │           D3.js Visualization                   │
+         └─────────────────────────────────────────────────┘
 ```
 
 ## Components
@@ -51,12 +57,25 @@ This project provides intelligent analysis of NASA space biology research throug
 - **Entity Search**: Find publications by organisms, phenomena, MeSH terms
 - **Related Articles**: Semantic relationship discovery
 
+### 4. Knowledge Graph API
+- **Full Graph Export**: Retrieve complete or filtered graph data
+- **Search-Based Graphs**: Generate graphs from semantic search results
+- **Interactive Filtering**: Node types, organisms, phenomena, date ranges
+- **Node Details**: Detailed information with neighbor exploration
+
+### 5. Interactive Frontend
+- **D3.js Visualization**: Force-directed graph with physics simulation
+- **Drag & Drop**: Interactive node positioning with mouse
+- **Zoom & Pan**: Navigate large graphs with smooth transitions
+- **Real-time Filtering**: Dynamic graph updates based on search/filters
+- **Node Details**: Tooltips and expandable information panels
+
 ## Installation
 
 ### Prerequisites
 - Python 3.8+
-- PostgreSQL
-- Neo4j Database
+- PostgreSQL database
+- Neo4j Database (AuraDB or local instance)
 - Virtual environment tool (venv or conda)
 
 ### Setup
@@ -82,7 +101,7 @@ pip install -r requirements.txt
 
 4. **Environment configuration**
 Create `.env` file with:
-```
+```env
 DATABASE_URL=postgresql://user:pass@localhost:5432/nasa_publications
 NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
 NEO4J_USERNAME=neo4j
@@ -91,6 +110,30 @@ MISTRAL_API_KEY=your-mistral-api-key
 ```
 
 
+## Running the Application
+
+### Backend API Server
+```bash
+# Development mode with auto-reload
+uvicorn api_ai:app --reload --port 8000
+
+# Production mode
+uvicorn api_ai:app --host 0.0.0.0 --port 8000
+```
+
+### Frontend Visualization
+```bash
+# Serve the frontend (separate terminal)
+python serve_frontend.py
+
+# Or with custom port
+python serve_frontend.py --port 3001
+```
+
+### Access Points
+- **API Documentation**: http://localhost:8000/docs
+- **Graph Visualization**: http://localhost:3000
+- **Health Check**: http://localhost:8000/health
 
 ## API Reference
 
@@ -100,9 +143,148 @@ http://localhost:8000
 ```
 
 ### Authentication
-Most endpoints require API key or session management. Include session ID in headers when using sessions:
+Include session ID in headers when using sessions:
 ```
 X-Session-ID: your-session-id
+```
+
+## Knowledge Graph API
+
+### Get Full Graph
+**GET** `/api/graph/full`
+
+Retrieve the complete knowledge graph with optional filtering.
+
+**Query Parameters:**
+- `limit` (int): Maximum nodes to return (default: 100)
+- `include_isolated` (bool): Include nodes with no connections (default: false)
+
+**Response:**
+```json
+{
+  "nodes": [
+    {
+      "id": "PMC123456",
+      "label": "Publication",
+      "properties": {
+        "title": "Effects of Microgravity on Bone Density",
+        "journal": "Space Medicine",
+        "publication_date": "2023-01-15"
+      },
+      "size": 25,
+      "color": "#3498db"
+    }
+  ],
+  "edges": [
+    {
+      "id": "PMC123456_STUDIES_mouse",
+      "source": "PMC123456",
+      "target": "mouse",
+      "type": "STUDIES",
+      "properties": {},
+      "weight": 1.0
+    }
+  ],
+  "stats": {
+    "total_nodes": 150,
+    "total_edges": 300,
+    "node_types": {
+      "Publication": 50,
+      "Organism": 25,
+      "Phenomenon": 30
+    },
+    "edge_types": {
+      "STUDIES": 75,
+      "INVESTIGATES": 60
+    }
+  }
+}
+```
+
+### Search-Based Graph
+**POST** `/api/graph/search`
+
+Generate graph from semantic search results.
+
+**Request Body:**
+```json
+{
+  "query": "bone loss microgravity",
+  "search_mode": "hybrid",
+  "limit": 10,
+  "include_related": true,
+  "max_depth": 2
+}
+```
+
+### Filter Graph
+**POST** `/api/graph/filter`
+
+Get filtered graph based on multiple criteria.
+
+**Request Body:**
+```json
+{
+  "node_types": ["Publication", "Organism"],
+  "organism": "mouse",
+  "phenomenon": "bone loss",
+  "date_from": "2020-01-01",
+  "date_to": "2023-12-31",
+  "limit": 100
+}
+```
+
+### Node Details
+**GET** `/api/graph/node/{node_id}`
+
+Get detailed information about a specific node and its neighbors.
+
+**Query Parameters:**
+- `include_neighbors` (bool): Include connected nodes (default: true)
+- `max_neighbors` (int): Maximum neighbors to return (default: 20)
+
+### Graph Statistics
+**GET** `/api/graph/stats`
+
+Get comprehensive graph statistics and analytics.
+
+**Response:**
+```json
+{
+  "database_stats": {
+    "total_nodes": 1250,
+    "total_relationships": 3400,
+    "node_types": {
+      "Publication": 500,
+      "Organism": 150,
+      "Phenomenon": 200
+    }
+  },
+  "analytics": {
+    "top_organisms": [
+      {"name": "Mus musculus", "count": 45},
+      {"name": "Rattus rattus", "count": 32}
+    ],
+    "top_phenomena": [
+      {"name": "bone loss", "count": 28},
+      {"name": "muscle atrophy", "count": 22}
+    ],
+    "research_gaps": [
+      {"system": "cardiovascular", "gap_score": 0.85}
+    ]
+  },
+  "visualization_info": {
+    "recommended_limits": {
+      "small_graph": 50,
+      "medium_graph": 200,
+      "large_graph": 500
+    },
+    "node_colors": {
+      "Publication": "#3498db",
+      "Organism": "#27ae60"
+    }
+  }
+}
 ```
 
 ## Session Management
@@ -287,6 +469,46 @@ X-Session-ID: optional-session-id
 }
 ```
 
+## Frontend Visualization
+
+### Interactive Features
+
+#### Graph Navigation
+- **Mouse Controls**: Drag nodes to reposition, scroll to zoom
+- **Keyboard Shortcuts**:
+  - `Ctrl+F`: Focus search input
+  - `Ctrl+R`: Reload full graph
+  - `Ctrl+C`: Center view
+
+#### Search & Filtering
+- **Semantic Search**: Natural language queries like "bone loss in microgravity"
+- **Search Modes**: Hybrid (default), Semantic only, Keyword only
+- **Node Type Filters**: Publications, Organisms, Phenomena, Platforms
+- **Text Filters**: Filter by organism name, phenomenon, platform
+- **Date Filters**: Limit publications by date range
+
+#### Visual Elements
+- **Node Colors**: Color-coded by type (Publications: blue, Organisms: green, etc.)
+- **Node Sizes**: Based on connection degree and node type
+- **Edge Weights**: Relationship strength affects line thickness
+- **Labels**: Smart labeling with truncation for readability
+- **Tooltips**: Detailed information on hover
+- **Legend**: Interactive color guide
+
+#### Real-time Updates
+- **Dynamic Loading**: Graphs update without page refresh
+- **Statistics Panel**: Live node/edge counts and type distribution
+- **Loading Indicators**: Progress feedback during data fetch
+- **Error Handling**: User-friendly error messages
+
+### Configuration
+
+The frontend connects to the API at `http://localhost:8000` by default. To change this, modify the `API_BASE` constant in `frontend/index.html`:
+
+```javascript
+const API_BASE = 'http://your-api-server:8000/api/graph';
+```
+
 ## Available Tools
 
 The AI assistants have access to these research tools:
@@ -304,31 +526,10 @@ The AI assistants have access to these research tools:
 - **search_by_phenomenon**: Find studies on phenomena (e.g., "microgravity")
 - **search_by_mesh_term**: Search using medical subject headings
 
-## Health Check
-
-### Health Status
-**GET** `/health`
-
-Check API health and service availability.
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "services": {
-    "summarizer": "available",
-    "rag_assistant": "available",
-    "generic_rag": "available"
-  },
-  "llm": "mistral-small-latest",
-  "version": "2.0.0"
-}
-```
-
-### Root Endpoint
-**GET** `/`
-
-Get API information and available endpoints.
+### Graph Tools
+- **get_node_details**: Detailed node information with neighbors
+- **filter_graph**: Apply complex filters to graph data
+- **search_graph**: Generate graphs from search queries
 
 ## Usage Examples
 
@@ -349,126 +550,198 @@ question_response = requests.post("http://localhost:8000/api/rag/generic",
 
 print(question_response.json()["answer"])
 print("Citations:", question_response.json()["citations"])
+
+# Get graph data
+graph_response = requests.get("http://localhost:8000/api/graph/full?limit=50")
+graph_data = graph_response.json()
+print(f"Graph has {len(graph_data['nodes'])} nodes and {len(graph_data['edges'])} edges")
 ```
 
 ### JavaScript Client Example
 
 ```javascript
-// Create session
-const sessionResponse = await fetch('http://localhost:8000/api/sessions', {
-  method: 'POST',
-  headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({service_type: 'generic_rag'})
-});
-const {session_id} = await sessionResponse.json();
+// Search and visualize graph
+async function searchAndVisualize(query) {
+  const searchResponse = await fetch('http://localhost:8000/api/graph/search', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      query: query,
+      search_mode: 'hybrid',
+      limit: 15,
+      include_related: true
+    })
+  });
+  
+  const graphData = await searchResponse.json();
+  
+  // graphData contains nodes and edges ready for D3.js visualization
+  console.log(`Found ${graphData.nodes.length} nodes`);
+  console.log(`Search query: ${graphData.stats.search_query}`);
+  
+  return graphData;
+}
 
-// Ask question
-const questionResponse = await fetch('http://localhost:8000/api/rag/generic', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-Session-ID': session_id
-  },
-  body: JSON.stringify({
-    question: 'What are the effects of microgravity on bones?'
-  })
-});
-
-const result = await questionResponse.json();
-console.log(result.answer);
-console.log('Citations:', result.citations);
+// Use with D3.js
+searchAndVisualize("cardiovascular effects of spaceflight")
+  .then(data => renderGraph(data));
 ```
 
 ## Development
 
-### Running the API
-```bash
-# Development mode with auto-reload
-uvicorn api_ai:app --reload --port 8000
-
-# Production mode
-uvicorn api_ai:app --host 0.0.0.0 --port 8000
+### Project Structure
+```
+nasa/
+├── api_ai.py              # Main API with AI services
+├── api_neo4j.py           # Knowledge graph API router
+├── session_manager.py     # Session management
+├── ai_summarizer.py       # Article summarization service
+├── ai_rag_assistant.py    # RAG with specific PMCIDs
+├── ai_generic_rag.py      # Autonomous RAG service
+├── search_engine.py       # Hybrid search engine
+├── neo4j_client.py        # Neo4j database client
+├── neo4j_queries.py       # Analytics and complex queries
+├── frontend/
+│   └── index.html         # D3.js visualization interface
+├── serve_frontend.py      # Frontend development server
+├── requirements.txt       # Python dependencies
+└── README.md
 ```
 
 ### Testing
-```bash
-# Run individual AI service tests
-python test_generic_rag.py
-python ai_rag_assistant.py
-python ai_summarizer.py
 
+```bash
 # Test API endpoints
-python test_api.py
+curl http://localhost:8000/health
+curl http://localhost:8000/api/graph/stats
+
+# Test graph endpoints
+curl -X POST http://localhost:8000/api/graph/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "bone loss", "limit": 5}'
+
+# Test AI services
+curl -X POST http://localhost:8000/api/rag/generic \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What causes bone loss in space?"}'
 ```
 
-### Adding New Tools
+### Adding New Features
 
+#### New Graph Filters
+1. Add filter parameters to `FilterRequest` model in `api_neo4j.py`
+2. Update filter logic in `filter_graph()` endpoint
+3. Add corresponding UI controls in `frontend/index.html`
+
+#### New Visualization Types
+1. Extend the D3.js code in `frontend/index.html`
+2. Add new rendering functions for different graph layouts
+3. Update the stats and legend systems
+
+#### New AI Tools
 1. Create tool function in appropriate service file
 2. Add citation tracking with `citation_tracker.add_pmcid()`
 3. Register tool in ReAct agent tools list
-4. Update documentation
+4. Update API documentation
+
+## Performance Optimization
+
+### Backend
+- **Connection Pooling**: Database connections are pooled and reused
+- **Caching**: LLM responses and embeddings are cached
+- **Async Operations**: Non-blocking I/O for better concurrency
+- **Query Optimization**: Efficient Neo4j queries with proper indexing
+
+### Frontend
+- **Progressive Loading**: Large graphs load incrementally
+- **Viewport Culling**: Only render visible nodes/edges
+- **Throttled Updates**: Smooth animations without performance drops
+- **Smart Labeling**: Labels appear/disappear based on zoom level
+
+### Scalability
+- **Stateless API**: Horizontal scaling supported
+- **Session Storage**: Database-backed session management
+- **Modular Services**: Individual components can be scaled independently
 
 ## Error Handling
 
-The API returns standard HTTP status codes:
-
-- **200**: Success
+### API Errors
 - **400**: Bad Request (invalid parameters)
 - **404**: Not Found (session or resource)
 - **500**: Internal Server Error
+- **503**: Service Unavailable (AI services down)
 
-Error responses include details:
-```json
-{
-  "detail": "Error description",
-  "error_type": "validation_error"
-}
-```
-
-## Performance
-
-### Caching
-- Services use singleton pattern for efficiency
-- Database connections are pooled
-- Embeddings are cached for repeated queries
-
-### Scalability
-- Stateless API design
-- Session data stored in database
-- Horizontal scaling supported
+### Frontend Errors
+- **Network Errors**: Graceful fallback with retry options
+- **Data Validation**: Client-side validation before API calls
+- **User Feedback**: Clear error messages and loading states
 
 ## Security
 
 ### API Security
-- Environment variables for sensitive data
-- Input validation on all endpoints
-- Session-based access control
+- **Environment Variables**: Sensitive data stored securely
+- **Input Validation**: All endpoints validate input parameters
+- **CORS Configuration**: Proper cross-origin request handling
+- **Rate Limiting**: Planned feature for production deployment
 
-### Database Security
-- Connection pooling with limits
-- Prepared statements prevent SQL injection
-- Neo4j authentication required
+### Data Security
+- **Database Security**: Connection pooling with authentication
+- **No Data Logging**: Sensitive query content not logged
+- **Session Isolation**: User sessions are properly isolated
 
-## Monitoring
+## Deployment
 
-### Logging
-- Structured logging with timestamps
-- Request/response tracking
-- Error details and stack traces
+### Production Deployment
+```bash
+# Build production container
+docker build -t nasa-ai-api .
 
-### Metrics
-- Response times logged
-- Citation tracking
-- Tool usage statistics
+# Run with production settings
+docker run -p 8000:8000 --env-file .env nasa-ai-api
+
+# Serve frontend with nginx
+nginx -c /path/to/nginx.conf
+```
+
+### Environment Variables
+Required for production:
+```env
+DATABASE_URL=postgresql://...
+NEO4J_URI=neo4j+s://...
+NEO4J_USERNAME=...
+NEO4J_PASSWORD=...
+MISTRAL_API_KEY=...
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+```
 
 ## Contributing
 
+### Development Workflow
 1. Fork the repository
-2. Create feature branch
-3. Add tests for new functionality
-4. Update documentation
-5. Submit pull request
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Make changes with proper testing
+4. Update documentation and examples
+5. Submit pull request with detailed description
+
+### Code Standards
+- **Python**: Follow PEP 8 style guidelines
+- **JavaScript**: Use modern ES6+ syntax
+- **Documentation**: Update README for new features
+- **Testing**: Add tests for new functionality
+
+### Issue Reporting
+- Use GitHub issues for bugs and feature requests
+- Include reproduction steps and environment details
+- Tag issues appropriately (bug, enhancement, documentation)
 
 ## License
 
 This project is developed for NASA space biology research analysis.
+
+## Acknowledgments
+
+- NASA Space Biology Program for research data
+- Neo4j for graph database technology
+- D3.js community for visualization tools
+- OpenAI and Mistral for AI capabilities
