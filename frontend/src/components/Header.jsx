@@ -6,7 +6,9 @@ const Header = ({ currentPage, onNavigate, isDarkMode, onThemeToggle }) => {
     <header className="header fade-in">
       <div className="header-content">
         <div className="logo" onClick={() => onNavigate('home')}>
-          <span className="logo-icon">🚀</span>
+          <span className="logo-icon">
+            <img src="/logoAppolon.png" alt="Apollon Logo" className="logo-design" />
+          </span>
           <span className="logo-text">APOLLON</span>
         </div>
         

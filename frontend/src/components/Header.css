@@ -26,15 +26,30 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* Augmenté de 1.5rem */
   color: var(--primary);
 }
 
 .logo-icon {
-  font-size: 1.8rem;
+  font-size: 2rem; /* Augmenté de 1.8rem */
+}
+
+.logo-text {
+  font-size: 1.8rem; /* Ajouté pour contrôler spécifiquement le texte */
+  font-weight: 700;
+  line-height: 1;
+  margin-top: -2px; /* Ajustement fin pour l'alignement vertical */
+}
+
+.logo-design {
+  height: 44px; /* Augmenté de 40px */
+  width: 44px; /* Augmenté de 40px */
+  border-radius: 50%;
+  margin-top: 2px;
+  object-fit: cover;
 }
 
 .nav {
@@ -102,6 +117,40 @@
   }
   
   .logo-text {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* Ajusté pour mobile */
+  }
+  
+  .logo {
+    font-size: 1.5rem; /* Ajusté pour mobile */
+    gap: 0.5rem;
+  }
+  
+  .logo-icon {
+    font-size: 1.7rem; /* Ajusté pour mobile */
+  }
+  
+  .logo-design {
+    height: 38px; /* Ajusté pour mobile */
+    width: 38px; /* Ajusté pour mobile */
+  }
+}
+
+/* Version encore plus grande si nécessaire */
+@media (min-width: 1200px) {
+  .logo {
+    font-size: 2rem; /* Encore plus grand sur les grands écrans */
+  }
+  
+  .logo-text {
+    font-size: 2rem;
+  }
+  
+  .logo-icon {
+    font-size: 2.2rem;
+  }
+  
+  .logo-design {
+    height: 48px;
+    width: 48px;
   }
 }
