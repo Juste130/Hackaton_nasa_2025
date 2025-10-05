@@ -8,7 +8,7 @@ datasource db {
 }
 
 model authors {
-  id                  String                @id @default(uuid()) @db.Uuid
+  id                  String                @id @db.Uuid
   firstname           String?               @db.VarChar(255)
   lastname            String                @db.VarChar(255)
   email               String?               @db.VarChar(255)
@@ -18,7 +18,7 @@ model authors {
 }
 
 model entities {
-  id                   String                 @id @default(uuid()) @db.Uuid
+  id                   String                 @id @db.Uuid
   entity_type          String                 @db.VarChar(50)
   entity_name          String                 @db.VarChar(255)
   normalized_name      String?                @db.VarChar(255)
@@ -27,14 +27,14 @@ model entities {
 }
 
 model keywords {
-  id                   String                 @id @default(uuid()) @db.Uuid
+  id                   String                 @id @db.Uuid
   keyword              String                 @unique @db.VarChar(255)
   category             String?                @db.VarChar(100)
   publication_keywords publication_keywords[]
 }
 
 model mesh_terms {
-  id                     String                   @id @default(uuid()) @db.Uuid
+  id                     String                   @id @db.Uuid
   term                   String                   @unique @db.VarChar(255)
   tree_number            String?                  @db.VarChar(50)
   publication_mesh_terms publication_mesh_terms[]
@@ -52,7 +52,7 @@ model publication_authors {
 }
 
 model publication_entities {
-  id             String       @id @default(uuid()) @db.Uuid
+  id             String       @id @db.Uuid
   publication_id String       @db.Uuid
   entity_id      String       @db.Uuid
   confidence     Float?
@@ -82,7 +82,7 @@ model publication_mesh_terms {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model publications {
-  id                     String                   @id @default(uuid()) @db.Uuid
+  id                     String                   @id @db.Uuid
   pmcid                  String                   @unique @db.VarChar(20)
   pmid                   String?                  @db.VarChar(20)
   doi                    String?                  @db.VarChar(255)
@@ -108,7 +108,7 @@ model publications {
 }
 
 model text_sections {
-  id             String                 @id @default(uuid()) @db.Uuid
+  id             String                 @id @db.Uuid
   publication_id String                 @db.Uuid
   section_name   String                 @db.VarChar(255)
   content        String
