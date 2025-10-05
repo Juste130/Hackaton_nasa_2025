@@ -7,7 +7,7 @@ const Header = ({ currentPage, onNavigate, isDarkMode, onThemeToggle }) => {
       <div className="header-content">
         <div className="logo" onClick={() => onNavigate('home')}>
           <span className="logo-icon">🚀</span>
-          <span className="logo-text">NASA BioSpace</span>
+          <span className="logo-text">APOLLON</span>
         </div>
         
         <nav className="nav">
