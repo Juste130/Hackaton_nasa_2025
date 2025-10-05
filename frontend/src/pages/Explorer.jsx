@@ -43,7 +43,7 @@ const Explorer = () => {
         setLoadingPublications(true);
         const baseUrl =
           process.env.REACT_APP_API_URL || "http://localhost:3000";
-        const res = await fetch(`${baseUrl}/publications`, {
+        const res = await fetch(`${baseUrl}/api/publications`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error(`API error ${res.status}`);
