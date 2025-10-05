@@ -8,4 +8,15 @@ wheels/
 
 # Virtual environments
 .venv
+lib/
 .env
+aislop.py
+fix*.py
+challenge.md
+strategy.md
+*.txt
+migrate*
+quick.py
+update*
+verify*
+*.db

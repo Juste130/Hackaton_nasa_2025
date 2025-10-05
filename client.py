@@ -38,11 +38,16 @@ class Publication(Base):
     doi: Mapped[Optional[str]] = mapped_column(String(255))
     title: Mapped[str] = mapped_column(Text, nullable=False)
     abstract: Mapped[Optional[str]] = mapped_column(Text)
+    abstract_generated: Mapped[Optional[str]] = mapped_column(Text)
+    full_text_content: Mapped[Optional[str]] = mapped_column(Text)  # NOUVEAU
     publication_date: Mapped[Optional[date]] = mapped_column(Date)
     journal: Mapped[Optional[str]] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(768))
+    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(384))  # ← CHANGER 768 en 384
+    generation_type: Mapped[Optional[str]] = mapped_column(String(50))
+    key_findings: Mapped[Optional[str]] = mapped_column(Text)
+    methodology: Mapped[Optional[str]] = mapped_column(Text)
     
     # Relations
     authors = relationship("PublicationAuthor", back_populates="publication", cascade="all, delete-orphan")
@@ -113,7 +118,7 @@ class TextSection(Base):
     section_name: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     section_order: Mapped[Optional[int]] = mapped_column(Integer)
-    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(768))
+    embedding: Mapped[Optional[List[float]]] = mapped_column(Vector(384))  # ← CHANGER 768 en 384
     
     publication = relationship("Publication", back_populates="text_sections")
 
@@ -190,6 +195,7 @@ class DatabaseClient:
                     doi=publication_data.get('doi'),
                     title=publication_data['title'],
                     abstract=publication_data.get('abstract'),
+                    full_text_content=publication_data.get('full_text_content'),  # NOUVEAU
                     publication_date=self._parse_date(publication_data.get('publication_date')),
                     journal=publication_data.get('journal')
                 )
@@ -221,16 +227,42 @@ class DatabaseClient:
                 logger.error(f"Erreur création publication {publication_data.get('pmcid', 'unknown')}: {e}")
                 raise
     
-    async def get_publication_by_pmcid(self, pmcid: str) -> Optional[Dict]:
-        """Récupérer une publication par PMCID"""
-        async with self.async_session() as session:
-            result = await session.execute(
-                select(Publication).where(Publication.pmcid == pmcid)
-            )
-            publication = result.scalar_one_or_none()
-            
-            if publication:
-                return await self._publication_to_dict(session, publication)
+    async def update_publication(self, publication_id: uuid.UUID, update_data: Dict[str, Any]) -> bool:
+        """Mettre à jour une publication avec les données fournies"""
+        try:
+            async with self.async_session() as session:
+                await session.execute(
+                    update(Publication)
+                    .where(Publication.id == publication_id)
+                    .values(**update_data)
+                )
+                await session.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Erreur mise à jour publication {publication_id}: {e}")
+            return False
+
+    async def get_publication_by_pmcid(self, pmcid: str) -> Optional[Dict[str, Any]]:
+        """Récupérer une publication par son PMCID"""
+        try:
+            async with self.async_session() as session:
+                result = await session.execute(
+                    select(Publication)
+                    .where(Publication.pmcid == pmcid)
+                )
+                publication = result.scalar_one_or_none()
+                if publication:
+                    return {
+                        'id': str(publication.id),
+                        'pmcid': publication.pmcid,
+                        'title': publication.title,
+                        'abstract': publication.abstract,
+                        'publication_date': publication.publication_date,
+                        'journal': publication.journal
+                    }
+                return None
+        except Exception as e:
+            logger.error(f"Erreur récupération publication {pmcid}: {e}")
             return None
     
     async def get_publication_by_id(self, pub_id: uuid.UUID) -> Optional[Dict]:
@@ -286,22 +318,6 @@ class DatabaseClient:
             publications = result.scalars().all()
             
             return [await self._publication_to_dict(session, pub) for pub in publications]
-    
-    async def update_publication(self, pub_id: uuid.UUID, update_data: Dict[str, Any]) -> bool:
-        """Mettre à jour une publication"""
-        async with self.async_session() as session:
-            try:
-                result = await session.execute(
-                    update(Publication)
-                    .where(Publication.id == pub_id)
-                    .values(**update_data, updated_at=datetime.utcnow())
-                )
-                await session.commit()
-                return result.rowcount > 0
-            except Exception as e:
-                await session.rollback()
-                logger.error(f"Erreur mise à jour publication {pub_id}: {e}")
-                return False
     
     async def delete_publication(self, pub_id: uuid.UUID) -> bool:
         """Supprimer une publication"""

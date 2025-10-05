@@ -14,6 +14,7 @@ from pathlib import Path
 import logging
 import pandas as pd
 from client import DatabaseClient
+from extract_sections import IntelligentSectionExtractorModule
 
 # Configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,6 +48,7 @@ class Publication:
     doi: Optional[str]
     keywords: List[str]
     full_text_sections: Dict[str, str]  # {section_name: content}
+    full_text_content: Optional[str]  # NOUVEAU - Ajout du champ manquant
     mesh_terms: List[str]  # Medical Subject Headings
     references: List[str]  # PMIDs cités
 
@@ -60,6 +62,9 @@ class NCBIExtractor:
         self.api_key = api_key
         self.rate_limit = 0.34 if not api_key else 0.3  # secondes entre requêtes
         self.db_client = db_client
+        
+        # Initialiser le module DSPy d'extraction de sections
+        self.section_extractor_dspy = IntelligentSectionExtractorModule()
 
     def _make_request(self, endpoint: str, params: Dict) -> requests.Response:
         """Effectue une requête à l'API NCBI avec rate limiting"""
@@ -114,6 +119,79 @@ class NCBIExtractor:
                     unique_keywords.add(normalized)
         
         return list(unique_keywords)
+
+    def _extract_text_sections(self, body_element) -> Dict[str, str]:
+        """
+        Extraire les sections de texte avec stratégies multiples incluant DSPy
+        """
+        sections = {}
+        
+        if body_element is None:
+            return sections
+        
+        # Stratégie 1: Sections explicites avec titres
+        explicit_sections = body_element.findall('.//sec')
+        
+        if explicit_sections and len(explicit_sections) >= 2:
+            logger.info("Utilisation des sections explicites")
+            for i, sec in enumerate(explicit_sections):
+                title_elem = sec.find('title')
+                
+                if title_elem is not None:
+                    section_title = self._clean_text(''.join(title_elem.itertext()))
+                else:
+                    section_title = f"Section_{i+1}"
+                
+                section_content = self._clean_text(''.join(sec.itertext()))
+                
+                if section_content and len(section_content) > 50:
+                    sections[section_title] = section_content
+            
+            if sections:
+                return sections
+        
+        # Stratégie 2: Extraction intelligente avec DSPy
+        logger.info("Tentative d'extraction intelligente avec DSPy")
+        try:
+            # Convertir l'élément body en XML string
+            body_xml = ET.tostring(body_element, encoding='unicode', method='xml')
+            
+            # Utiliser le module DSPy pour extraction intelligente
+            dspy_result = self.section_extractor_dspy.forward(body_xml)
+            
+            if dspy_result['sections'] and len(dspy_result['sections']) >= 2:
+                logger.info(f" DSPy a extrait {len(dspy_result['sections'])} sections avec confiance {dspy_result.get('confidence', 0)}")
+                return dspy_result['sections']
+            else:
+                logger.info("DSPy n'a pas trouvé suffisamment de sections, fallback")
+                
+        except Exception as e:
+            logger.warning(f"Erreur extraction DSPy: {e}, utilisation du fallback")
+        
+        # Stratégie 3: Fallback - Full Text
+        logger.info("Utilisation du fallback Full Text")
+        full_text_content = self._extract_full_text_content(body_element)
+        
+        if full_text_content and len(full_text_content) > 100:
+            sections["Full Text"] = full_text_content
+        
+        return sections
+
+    def _extract_full_text_content(self, body_element) -> str:
+        """
+        Extraire le contenu textuel complet du body
+        """
+        if body_element is None:
+            return ""
+            
+        # Extraire tout le texte du body
+        full_text = self._clean_text(''.join(body_element.itertext()))
+        
+        # Nettoyer et filtrer
+        if len(full_text) < 100:
+            return ""
+        
+        return full_text
 
     def fetch_publication_details(self, pmcid: str) -> Optional[Publication]:
         """
@@ -214,32 +292,24 @@ class NCBIExtractor:
             # MeSH terms (requiert une requête séparée à PubMed)
             mesh_terms = self._fetch_mesh_terms(pmid) if pmid else []
 
-            # Sections du texte complet
+            # Sections du texte avec nouvelle stratégie incluant DSPy
             body = article.find('.//body')
-            sections = {}
-            if body is not None:
-                for i, sec in enumerate(body.findall('.//sec')):
-                    title_elem = sec.find('title')
-                    
-                    # Améliorer la gestion du titre de section
-                    if title_elem is not None:
-                        section_title = self._clean_text(''.join(title_elem.itertext()))
-                    else:
-                        section_title = ""
-                    
-                    # Si toujours vide, utiliser un nom par défaut
-                    if not section_title:
-                        section_title = f"Untitled"
+            sections = self._extract_text_sections(body)
+            
+            # Extraire le texte complet pour la nouvelle colonne
+            full_text = self._extract_full_text_content(body)
+            
+            # Si pas de texte complet depuis body, essayer depuis l'article entier
+            if not full_text or len(full_text) < 200:
+                full_text = self._clean_text(''.join(article.itertext()))
+                if len(full_text) > 10000:
+                    full_text = full_text[:10000]  # Limiter à 10k caractères
 
-                    
-                    
-                    
-                    # Contenu de la section
-                    section_content = self._clean_text(''.join(sec.itertext()))
-                    
-                    # Ajouter seulement si on a du contenu valide
-                    if section_content and len(section_content) > 10:  # Au moins 10 caractères
-                        sections[section_title] = section_content
+            # Validation: s'assurer qu'on a au moins une section
+            if not sections:
+                logger.warning(f"Aucune section textuelle extraite pour {pmcid}")
+                if full_text and len(full_text) > 200:
+                    sections["Full Text"] = full_text[:5000]  # Section limitée
 
             # Références (PMIDs cités)
             references = []
@@ -266,11 +336,13 @@ class NCBIExtractor:
                 doi=doi,
                 keywords=keywords,
                 full_text_sections=sections,
+                full_text_content=full_text,  # MAINTENANT DÉFINI DANS LA DATACLASS
                 mesh_terms=mesh_terms,
                 references=references
             )
 
-            logger.info(f"✓ {pmcid} extrait avec succès")
+            # Log des sections et du texte complet
+            logger.info(f" {pmcid} extrait avec {len(sections)} section(s) et {len(full_text) if full_text else 0} chars de texte complet")
             return publication
 
         except Exception as e:
@@ -312,7 +384,7 @@ class NCBIExtractor:
         skipped = []
         
         total = len(pmcid_list)
-        logger.info(f"📚 Début extraction de {total} publications vers PostgreSQL")
+        logger.info(f" Début extraction de {total} publications vers PostgreSQL")
 
         for i, pmcid in enumerate(pmcid_list, 1):
             logger.info(f"Progression: {i}/{total} - {pmcid}")
@@ -320,7 +392,6 @@ class NCBIExtractor:
             try:
                 # Vérifier si la publication existe déjà
                 if skip_existing and await self.check_publication_exists(pmcid):
-                    #logger.info(f"⏭️  {pmcid} déjà en base, ignoré")
                     skipped.append(pmcid)
                     continue
 
@@ -328,32 +399,36 @@ class NCBIExtractor:
                 pub = self.fetch_publication_details(pmcid)
 
                 if pub:
+                    # Vérifier qu'on a au moins une section
+                    if not pub.full_text_sections:
+                        logger.warning(f" {pmcid} sans sections, tentative d'extraction alternative")
+                        
                     # Insérer en base de données
                     try:
                         pub_id = await self.db_client.create_publication(pub.to_dict())
                         results.append(pub_id)
-                        logger.info(f"✅ {pmcid} inséré en base avec ID {pub_id}")
+                        logger.info(f" {pmcid} inséré en base avec ID {pub_id}")
                     except Exception as db_error:
-                        logger.error(f"❌ Erreur insertion {pmcid}: {db_error}")
+                        logger.error(f" Erreur insertion {pmcid}: {db_error}")
                         failed.append(pmcid)
                 else:
                     failed.append(pmcid)
 
                 # Checkpoint tous les 25 documents
                 if i % 25 == 0:
-                    logger.info(f"📊 Checkpoint: {len(results)} succès, {len(failed)} échecs, {len(skipped)} ignorés")
+                    logger.info(f" Checkpoint: {len(results)} succès, {len(failed)} échecs, {len(skipped)} ignorés")
 
             except Exception as e:
-                logger.error(f"❌ Erreur générale {pmcid}: {e}")
+                logger.error(f" Erreur générale {pmcid}: {e}")
                 failed.append(pmcid)
 
-        logger.info(f"\n🎯 Extraction terminée:")
-        logger.info(f"   ✅ Succès: {len(results)}")
-        logger.info(f"   ❌ Échecs: {len(failed)}")
-        logger.info(f"   ⏭️  Ignorés: {len(skipped)}")
+        logger.info(f"\n Extraction terminée:")
+        logger.info(f"    Succès: {len(results)}")
+        logger.info(f"    Échecs: {len(failed)}")
+        logger.info(f"   ⏭  Ignorés: {len(skipped)}")
 
         if failed:
-            logger.warning(f"📋 Publications échouées: {failed}")
+            logger.warning(f" Publications échouées: {failed}")
 
         return results, failed, skipped
 
@@ -362,7 +437,7 @@ async def main():
     """Fonction principale d'extraction"""
     
     # 1. Charger la liste des PMCIDs depuis le CSV
-    logger.info("📥 Chargement de la liste des publications...")
+    logger.info(" Chargement de la liste des publications...")
     df = pd.read_csv("https://raw.githubusercontent.com/jgalazka/SB_publications/refs/heads/main/SB_publication_PMC.csv")
     
     pmcids = []
@@ -370,8 +445,11 @@ async def main():
         link = df["Link"][i]
         pmcid = link.split("/")[-2] if link.endswith('/') else link.split("/")[-1]
         pmcids.append(pmcid)
-    pmcids=['PMC11579474', 'PMC6615562', 'PMC6321533', 'PMC11833055', 'PMC6746706', 'PMC11941215', 'PMC11339457']
-    logger.info(f"📚 {len(pmcids)} publications à extraire")
+    
+    # Test avec un sous-ensemble
+    # pmcids = pmcids[:10]  # Décommenter pour tester
+    
+    logger.info(f" {len(pmcids)} publications à extraire")
 
     # 2. Initialiser le client de base de données
     db_client = DatabaseClient()
@@ -390,21 +468,21 @@ async def main():
         # 4. Lancer l'extraction avec insertion directe en base
         results, failed, skipped = await extractor.batch_extract_to_db(
             pmcids, 
-            skip_existing=True  # Ignorer les publications déjà en base
+            skip_existing=True
         )
 
-        logger.info(f"\n🎉 Processus terminé!")
-        logger.info(f"   📊 Total traité: {len(pmcids)}")
-        logger.info(f"   ✅ Insertions réussies: {len(results)}")
-        logger.info(f"   ❌ Échecs: {len(failed)}")
-        logger.info(f"   ⏭️  Déjà existants: {len(skipped)}")
+        logger.info(f"\n Processus terminé!")
+        logger.info(f"    Total traité: {len(pmcids)}")
+        logger.info(f"    Insertions réussies: {len(results)}")
+        logger.info(f"    Échecs: {len(failed)}")
+        logger.info(f"   ⏭  Déjà existants: {len(skipped)}")
 
         # Statistiques finales
         total_in_db = len(results) + len(skipped)
-        logger.info(f"   🗄️  Total en base: {total_in_db}")
+        logger.info(f"     Total en base: {total_in_db}")
 
     except Exception as e:
-        logger.error(f"❌ Erreur fatale: {e}")
+        logger.error(f" Erreur fatale: {e}")
         raise
     finally:
         await db_client.close()

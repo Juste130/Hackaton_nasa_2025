@@ -1,0 +1,243 @@
+{
+  "extractor.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "title": "FAIRness and Usability for Open-access Omics Data Systems",
+        "abstract": "Omics data sharing is crucial to the biological research community, and the last decade or two has seen a huge rise in collaborative analysis systems, databases, and knowledge bases for omics and other systems biology data. We assessed the “FAIRness” of NASA’s GeneLab Data Systems (GLDS) along with four similar kinds of systems in the research omics data domain, using 14 FAIRness metrics. The range of overall FAIRness scores was 6-12 (out of 14), average 10.1, and standard deviation 2.4. The range of Pass ratings for the metrics was 29-79%, Partial Pass 0-21%, and Fail 7-50%. The systems we evaluated performed the best in the areas of data findability and accessibility, and worst in the area of data interoperability. Reusability of metadata, in particular, was frequently not well supported. We relate our experiences implementing semantic integration of omics data from some of the assessed systems for federated querying and retrieval functions, given their shortcomings in data interoperability. Finally, we propose two new principles that Big Data system developers, in particular, should consider for maximizing data accessibility.",
+        "keywords": [],
+        "mesh_terms": [
+          "Access to Information",
+          "Big Data",
+          "Computational Biology",
+          "Data Systems",
+          "Databases, Factual",
+          "Health Information Interoperability",
+          "Information Dissemination",
+          "Information Storage and Retrieval",
+          "Semantics"
+        ],
+        "reasoning": "The paper is a review and assessment of open-access omics data systems, specifically focusing on NASA's GeneLab Data Systems (GLDS) and their adherence to FAIR principles (Findability, Accessibility, Interoperability, Reusability). It is an informatics study, not a biological experiment involving organisms, biological phenomena, or environmental stressors.",
+        "organisms": [],
+        "phenomena": [],
+        "experimental_context": "review",
+        "platform": null,
+        "stressors": []
+      },
+      {
+        "augmented": true,
+        "title": "Swim exercise in Caenorhabditis elegans extends neuromuscular and gut healthspan, enhances learning ability, and protects against neurodegeneration",
+        "abstract": "SignificanceExercise is a powerful antiaging intervention that protects against cardiovascular disease, dementia, diabetes, sarcopenia, and cancer. How exercise promotes health benefits to multiple tissues in the body, however, remains poorly understood. We establish a young adult swim exercise regimen for the short-lived nematode Caenorhabditis elegans that induces health benefits at the neuromuscular, intestinal, and cognitive levels and protects against neurodegeneration in models of tauopathy, Alzheimer’s disease, and Huntington’s disease. Importantly, we found that swim exercise performed exclusively in early adulthood promotes long-lasting systemic benefits that are still detectable in midlife. The advantages of C. elegans as a short-lived genetic model will allow for dissection of the molecular circuitry involved in system-wide exercise benefits.",
+        "keywords": [
+          "exercise",
+          "muscle",
+          "aging",
+          "neurodegeneration"
+        ],
+        "mesh_terms": [
+          "Adaptation, Physiological",
+          "Animals",
+          "Caenorhabditis elegans",
+          "Intestines",
+          "Learning",
+          "Muscles",
+          "Nervous System Physiological Phenomena",
+          "Neuroprotection",
+          "Swimming"
+        ],
+        "reasoning": "The study uses the nematode *Caenorhabditis elegans* to investigate the effects of swim exercise (a form of mechanical stress/intervention) on aging, neuromuscular health, gut health, learning ability, and protection against neurodegeneration (tauopathy, Alzheimer’s disease, Huntington’s disease models). Since this study investigates a biological intervention (exercise) in a model organism, but does not involve spaceflight or a spaceflight analog (like microgravity simulation or radiation exposure), it is classified as a 'ground_simulation' in the context of general biological research, although it is not simulating a space stressor. The phenomena are related to aging, neurological function, and musculoskeletal/gut healthspan. No space stressors or platforms are mentioned.",
+        "organisms": [
+          {
+            "name": "nematode",
+            "scientific_name": "Caenorhabditis elegans",
+            "category": "microorganism"
+          }
+        ],
+        "phenomena": [
+          {
+            "name": "extended neuromuscular healthspan",
+            "description": "Improved health and function of the neuromuscular system during aging",
+            "system": "musculoskeletal"
+          },
+          {
+            "name": "extended gut healthspan",
+            "description": "Improved health and function of the intestinal system during aging",
+            "system": "other"
+          },
+          {
+            "name": "enhanced learning ability",
+            "description": "Improved cognitive function",
+            "system": "neurological"
+          },
+          {
+            "name": "protection against neurodegeneration",
+            "description": "Resistance to neurodegenerative conditions (tauopathy, Alzheimer’s disease, Huntington’s disease models)",
+            "system": "neurological"
+          },
+          {
+            "name": "aging",
+            "description": "Study of the process of senescence and healthspan extension",
+            "system": "other"
+          }
+        ],
+        "experimental_context": "ground_simulation",
+        "platform": null,
+        "stressors": []
+      },
+      {
+        "augmented": true,
+        "title": "Growth of Carnobacterium spp. from permafrost under low pressure, temperature, and anoxic atmosphere has implications for Earth microbes on Mars",
+        "abstract": "The ability of terrestrial microorganisms to grow in the near-surface environment of Mars is of importance to the search for life and protection of that planet from forward contamination by human and robotic exploration. Because most water on present-day Mars is frozen in the regolith, permafrosts are considered to be terrestrial analogs of the martian subsurface environment. Six bacterial isolates were obtained from a permafrost borehole in northeastern Siberia capable of growth under conditions of low temperature (0 °C), low pressure (7 mbar), and a CO2-enriched anoxic atmosphere. By 16S ribosomal DNA analysis, all six permafrost isolates were identified as species of the genus Carnobacterium, most closely related to C. inhibens (five isolates) and C. viridans (one isolate). Quantitative growth assays demonstrated that the six permafrost isolates, as well as nine type species of Carnobacterium (C. alterfunditum, C. divergens, C. funditum, C. gallinarum, C. inhibens, C. maltaromaticum, C. mobile, C. pleistocenium, and C. viridans) were all capable of growth under cold, low-pressure, anoxic conditions, thus extending the low-pressure extreme at which life can function.",
+        "keywords": [
+          "astrobiology",
+          "planetary protection"
+        ],
+        "mesh_terms": [
+          "Soil Microbiology",
+          "Species Specificity",
+          "Temperature",
+          "Anaerobiosis",
+          "Atmospheric Pressure",
+          "Base Sequence",
+          "Carnobacterium",
+          "Cluster Analysis",
+          "DNA, Ribosomal",
+          "Exobiology",
+          "Extraterrestrial Environment",
+          "Mars",
+          "Molecular Sequence Data",
+          "Phylogeny",
+          "Sequence Analysis, DNA",
+          "Siberia"
+        ],
+        "reasoning": "The study investigates the viability and growth of *Carnobacterium* species, isolated from Siberian permafrost, under conditions simulating the Martian near-surface environment (low pressure, low temperature, anoxic atmosphere). The experimental context is a ground simulation of an extraterrestrial environment. The organisms are microorganisms (*Carnobacterium*). The primary phenomenon is microbial growth/survival under these extreme environmental stressors.",
+        "organisms": [
+          {
+            "name": "Carnobacterium spp.",
+            "scientific_name": "Carnobacterium",
+            "category": "microorganism"
+          }
+        ],
+        "phenomena": [
+          {
+            "name": "Microbial growth under extreme conditions",
+            "description": "Viability and proliferation of Carnobacterium spp. under low temperature, low pressure, and anoxic atmosphere (simulating Mars environment)",
+            "system": "metabolic"
+          }
+        ],
+        "experimental_context": "ground_simulation",
+        "platform": null,
+        "stressors": [
+          "altered_pressure",
+          "altered_atmosphere",
+          "low_temperature"
+        ]
+      },
+      {
+        "augmented": true,
+        "title": "New perspectives on viable microbial communities in low-biomass cleanroom environments",
+        "abstract": "The advent of phylogenetic DNA microarrays and high-throughput pyrosequencing technologies has dramatically increased the resolution and accuracy of detection of distinct microbial lineages in mixed microbial assemblages. Despite an expanding array of approaches for detecting microbes in a given sample, rapid and robust means of assessing the differential viability of these cells, as a function of phylogenetic lineage, remain elusive. In this study, pre-PCR propidium monoazide (PMA) treatment was coupled with downstream pyrosequencing and PhyloChip DNA microarray analyses to better understand the frequency, diversity and distribution of viable bacteria in spacecraft assembly cleanrooms. Sample fractions not treated with PMA, which were indicative of the presence of both live and dead cells, yielded a great abundance of highly diverse bacterial pyrosequences. In contrast, only 1% to 10% of all of the pyrosequencing reads, arising from a few robust bacterial lineages, originated from sample fractions that had been pre-treated with PMA. The results of PhyloChip analyses of PMA-treated and -untreated sample fractions were in agreement with those of pyrosequencing. The viable bacterial population detected in cleanrooms devoid of spacecraft hardware was far more diverse than that observed in cleanrooms that housed mission-critical spacecraft hardware. The latter was dominated by hardy, robust organisms previously reported to survive in oligotrophic cleanroom environments. Presented here are the findings of the first ever comprehensive effort to assess the viability of cells in low-biomass environmental samples, and correlate differential viability with phylogenetic affiliation.",
+        "keywords": [
+          "viability",
+          "microarray",
+          "454 pyrosequencing",
+          "PMA",
+          "PhyloChip"
+        ],
+        "mesh_terms": [
+          "Azides",
+          "Bacteria",
+          "Biomass",
+          "DNA, Bacterial",
+          "Environment, Controlled",
+          "Environmental Microbiology",
+          "Microbial Viability",
+          "Oligonucleotide Array Sequence Analysis",
+          "Phylogeny",
+          "Polymerase Chain Reaction",
+          "Propidium",
+          "RNA, Ribosomal, 16S",
+          "Spacecraft"
+        ],
+        "reasoning": "The study investigates the diversity and viability of bacterial communities found in spacecraft assembly cleanrooms. This is a ground-based environmental microbiology study relevant to planetary protection and space bioscience, focusing on how microorganisms survive in controlled, low-biomass environments associated with space hardware preparation.",
+        "organisms": [
+          {
+            "name": "bacteria",
+            "scientific_name": "Bacteria",
+            "category": "microorganism"
+          }
+        ],
+        "phenomena": [
+          {
+            "name": "Microbial viability assessment",
+            "description": "Assessment of the frequency and viability of bacterial lineages in low-biomass environments using PMA treatment and sequencing.",
+            "system": "other"
+          },
+          {
+            "name": "Microbial community diversity and distribution",
+            "description": "Analysis of the composition and distribution of bacterial populations in cleanroom environments.",
+            "system": "other"
+          }
+        ],
+        "experimental_context": "ground_simulation",
+        "platform": null,
+        "stressors": []
+      }
+    ],
+    "signature": {
+      "instructions": "Extracts structured biological entities from NASA bioscience space publications.\n\nContext: \n- Publications describing experiments in microgravity/radiation/space environments\n- Focus on model organisms (mice, rats, humans, plants, cells)\n- Biological phenomena studied (muscle atrophy, bone loss, immune dysfunction)\n\nInstructions:\n1. ORGANISMS: Normalize scientific names (e.g., \"mice\" -> \"Mus musculus\")\n   - Categorize: \"mammal\", \"plant\", \"cell_line\", \"microorganism\", \"human\"\n\n2. PHENOMENA: Identify biological processes studied\n   - Use standardized terminology (e.g., \"bone resorption\" not \"bone problems\")\n   - Distinguish phenomena from symptoms\n\n3. BIOLOGICAL SYSTEMS: Affected organs/systems\n   - E.g., \"musculoskeletal\", \"immune\", \"cardiovascular\", \"neurological\"\n\n4. EXPERIMENTAL CONTEXT: Type of space environment\n   - \"spaceflight\" (real), \"ground_simulation\" (parabolic flight, clinostat), \"computational_model\"\n\n5. PLATFORM: Identify mission/device if mentioned\n   - E.g., \"ISS\", \"Space Shuttle\", \"Rodent Habitat\", \"Cell Culture Unit\"\n\nStrict rules:\n- DO NOT invent information not present in the text\n- If uncertain about organism category -> \"unknown\"\n- If no platform mentioned -> null\n- Prioritize terms used in abstract/keywords",
+      "fields": [
+        {
+          "prefix": "Title:",
+          "description": "Publication title"
+        },
+        {
+          "prefix": "Abstract:",
+          "description": "Complete abstract"
+        },
+        {
+          "prefix": "Keywords:",
+          "description": "Author-provided keywords (can be empty)"
+        },
+        {
+          "prefix": "Mesh Terms:",
+          "description": "Medical MeSH terms (can be empty)"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Organisms:",
+          "description": "List of organisms: [{name: str, scientific_name: str, category: str}]. Categories: 'mammal', 'plant', 'cell_line', 'microorganism', 'human', 'unknown'"
+        },
+        {
+          "prefix": "Phenomena:",
+          "description": "List of biological phenomena: [{name: str, description: str, system: str}]. Systems: 'musculoskeletal', 'immune', 'cardiovascular', 'neurological', 'metabolic', 'other'"
+        },
+        {
+          "prefix": "Experimental Context:",
+          "description": "Experiment type: 'spaceflight' | 'ground_simulation' | 'computational_model' | 'review'"
+        },
+        {
+          "prefix": "Platform:",
+          "description": "Mission/space platform name if mentioned (e.g., 'ISS', 'Space Shuttle'), else null"
+        },
+        {
+          "prefix": "Stressors:",
+          "description": "Environmental stress factors studied: ['microgravity', 'radiation', 'isolation', 'altered_atmosphere', etc.]"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.0.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

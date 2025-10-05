@@ -1,0 +1,1137 @@
+[
+  {
+    "input": {
+      "pmcid": "PMC10605753",
+      "title": "Spaceflight Induces Strength Decline in Caenorhabditis elegans",
+      "abstract": "AbstractBackground: Understanding and countering the well-established negative health consequences of spaceflight remains a primary challenge preventing safe deep space exploration. Targeted/personalized therapeutics are at the forefront of space medicine strategies, and cross-species molecular signatures now define the \u2018typical\u2019 spaceflight response. However, a lack of direct genotype\u2013phenotype associations currently limits the robustness and, therefore, the therapeutic utility of putative mechanisms underpinning pathological changes in flight. Methods: We employed the worm Caenorhabditis elegans as a validated model of space biology, combined with \u2018NemaFlex-S\u2019 microfluidic devices for assessing animal strength production as one of the most reproducible physiological responses to spaceflight. Wild-type and dys-1 (BZ33) strains (a Duchenne muscular dystrophy (DMD) model for comparing predisposed muscle weak animals) were cultured on the International Space Station in chemically defined media before loading second-generation gravid adults into NemaFlex-S devices to assess individual animal strength. These same cultures were then frozen on orbit before returning to Earth for next-generation sequencing transcriptomic analysis. Results: Neuromuscular strength was lower in flight versus ground controls (16.6% decline, p < 0.05), with dys-1 significantly more (23% less strength, p < 0.01) affected than wild types. The transcriptional gene ontology signatures characterizing both strains of weaker animals in flight strongly corroborate previous results across species, enriched for upregulated stress response pathways and downregulated mitochondrial and cytoskeletal processes. Functional gene cluster analysis extended this to implicate decreased neuronal function, including abnormal calcium handling and acetylcholine signaling, in space-induced strength declines under the predicted control of UNC-89 and DAF-19 transcription factors. Finally, gene modules specifically altered in dys-1 animals in flight again cluster to neuronal/neuromuscular pathways, suggesting strength loss in DMD comprises a strong neuronal component that predisposes these animals to exacerbated strength loss in space. Conclusions: Highly reproducible gene signatures are strongly associated with space-induced neuromuscular strength loss across species and neuronal changes in calcium/acetylcholine signaling require further study. These results promote targeted medical efforts towards and provide an in vivo model for safely sending animals and people into deep space in the near future.",
+      "keywords": [
+        "microgravity",
+        "muscle strength",
+        "muscle atrophy",
+        "spaceflight",
+        "dystrophin",
+        "International Space Station",
+        "omics",
+        "gene expression",
+        "astropharmacy"
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Animals",
+        "Caenorhabditis elegans",
+        "Acetylcholine",
+        "Calcium",
+        "Space Flight",
+        "Caenorhabditis elegans Proteins",
+        "Dystrophin"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Caenorhabditis elegans",
+          "scientific_name": "Caenorhabditis elegans",
+          "category": "unknown"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "neuromuscular strength decline",
+          "description": "Reduced animal strength production observed in spaceflight compared to ground controls",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "muscle atrophy",
+          "description": "Associated with spaceflight-induced weakness, particularly exacerbated in dys-1 strain",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "altered neuronal function",
+          "description": "Decreased neuronal processes including abnormal calcium handling and acetylcholine signaling",
+          "system": "neurological"
+        }
+      ],
+      "experimental_context": "spaceflight",
+      "platform": "ISS",
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC10605753",
+      "year": 2023,
+      "journal": "Cells"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC5515506",
+      "title": "Effects of angular frequency during clinorotation on mesenchymal stem cell morphology and migration",
+      "abstract": "Aims:To determine the short-term effects of simulated microgravity on mesenchymal stem cell behaviors\u2014as a function of clinorotation speed\u2014using time-lapse microscopy.Background:Ground-based microgravity simulation can reproduce the apparent effects of weightlessness in spaceflight using clinostats that continuously reorient the gravity vector on a specimen, creating a time-averaged nullification of gravity. In this work, we investigated the effects of clinorotation speed on the morphology, cytoarchitecture, and migration behavior of human mesenchymal stem cells (hMSCs).Methods:We compared cell responses at clinorotation speeds of 0, 30, 60, and 75\u2009rpm over 8\u2009h in a recently developed lab-on-chip-based clinostat system. Time-lapse light microscopy was used to visualize changes in cell morphology during and after cessation of clinorotation. Cytoarchitecture was assessed by actin and vinculin staining, and chemotaxis was examined using time-lapse light microscopy of cells in NGF (100\u2009ng/ml) gradients.Results:Among clinorotated groups, cell area distributions indicated a greater inhibition of cell spreading with higher angular frequency (P<0.005), though average cell area at 30\u2009rpm after 8\u2009h became statistically similar to control (P=0.794). Cells at 75\u2009rpm clinorotation remained viable and were able to re-spread after clinorotation. In chemotaxis chambers, clinorotation did not alter migration patterns in elongated cells, but most clinorotated cells exhibited cell retraction, which strongly compromised motility.Conclusions:These results indicate that hMSCs respond to clinorotation by adopting more rounded, less-spread morphologies. The angular frequency-dependence suggests that a cell\u2019s ability to sense the changing gravity vector is governed by the rate of perturbation. For migration studies, cells cultured in clinorotated chemotaxis chambers were generally less motile and exhibited retraction instead of migration.",
+      "keywords": [],
+      "mesh_terms": []
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "human mesenchymal stem cells",
+          "scientific_name": "Homo sapiens",
+          "category": "cell_line"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "cell morphology alteration",
+          "description": "Cells adopt more rounded, less-spread morphologies with inhibition of spreading dependent on clinorotation speed",
+          "system": "other"
+        },
+        {
+          "name": "cytoarchitecture change",
+          "description": "Alterations in actin and vinculin staining indicating changes in cell structure",
+          "system": "other"
+        },
+        {
+          "name": "migration impairment",
+          "description": "Reduced motility and cell retraction in chemotaxis assays under clinorotation, compromising directed migration",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC5515506",
+      "year": 2015,
+      "journal": "NPJ Microgravity"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC5389344",
+      "title": "Bone Marrow Adipose Tissue Deficiency Increases Disuse-Induced Bone Loss in Male Mice",
+      "abstract": "Bone marrow adipose tissue (MAT) is negatively associated with bone mass. Since osteoblasts and adipocytes are derived from the same precursor cells, adipocyte differentiation may occur at the expense of osteoblast differentiation. We used MAT-deficient KitW/W\u2212v (MAT-) mice to determine if absence of MAT reduced bone loss in hindlimb-unloaded (HU) mice. Male MAT- and wild-type (WT) mice were randomly assigned to a baseline, control or HU group (n = 10 mice/group) within each genotype and HU groups unloaded for 2 weeks. Femurs were evaluated using micro-computed tomography, histomorphometry and targeted gene profiling. MAT- mice had a greater reduction in bone volume fraction after HU than did WT mice. HU MAT- mice had elevated cancellous bone formation and resorption compared to other treatment groups as well as a unique profile of differentially expressed genes. Adoptive transfer of WT bone marrow-derived hematopoietic stem cells reconstituted c-kit but not MAT in KitW/W\u2212v mice. The MAT- WT \u2192 KitW/W\u2212v mice lost cancellous bone following 2 weeks of HU. In summary, results from this study suggest that MAT deficiency was not protective, and was associated with exaggerated disuse-induced cancellous bone loss.",
+      "keywords": [],
+      "mesh_terms": [
+        "Adipose Tissue",
+        "Alveolar Bone Loss",
+        "Animals",
+        "Biomechanical Phenomena",
+        "Bone Density",
+        "Bone Marrow",
+        "Disease Models, Animal",
+        "Gene Expression Profiling",
+        "Genotype",
+        "Hindlimb Suspension",
+        "Male",
+        "Mice",
+        "Mice, Knockout",
+        "Osteoblasts",
+        "Osteoclasts",
+        "Transcriptome",
+        "X-Ray Microtomography"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Mice",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "Disuse-induced bone loss",
+          "description": "Exaggerated reduction in cancellous bone volume fraction following hindlimb unloading in MAT-deficient mice",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "Cancellous bone formation",
+          "description": "Elevated bone formation rates in hindlimb-unloaded MAT-deficient mice",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "Cancellous bone resorption",
+          "description": "Increased bone resorption in hindlimb-unloaded MAT-deficient mice",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC5389344",
+      "year": 2017,
+      "journal": "Scientific Reports"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC6379395",
+      "title": "Articular cartilage and sternal fibrocartilage respond differently to extended microgravity",
+      "abstract": "The effects of spaceflight on cartilaginous structure are largely unknown. To address this deficiency, articular cartilage (AC) and sternal cartilage (SC) from mice exposed to 30 days of microgravity on the BION-M1 craft were investigated for pathological changes. The flight AC showed some evidence of degradation at the tissue level with loss of proteoglycan staining and a reduction in mRNA expression of mechano-responsive and structural cartilage matrix proteins compared to non-flight controls. These data suggest that degradative changes are underway in the AC extracellular matrix exposed to microgravity. In contrast, there was no evidence of cartilage breakdown in SC flight samples and the gene expression profile was distinct from that of AC with a reduction in metalloproteinase gene transcription. Since the two cartilages respond differently to microgravity we propose that each is tuned to the biomechanical environments in which they are normally maintained. That is, the differences between magnitude of normal terrestrial loading and the unloading of microgravity dictates the tissue response. Weight-bearing articular cartilage, but not minimally loaded sternal fibrocartilage, is negatively affected by the unloading of microgravity. We speculate that the maintenance of physiological loading on AC during spaceflight will minimize AC damage.",
+      "keywords": [],
+      "mesh_terms": []
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "mice",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "cartilage degradation",
+          "description": "Degradative changes in articular cartilage extracellular matrix, including loss of proteoglycan staining and reduced mRNA expression of mechano-responsive and structural cartilage matrix proteins",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "altered gene expression in cartilage",
+          "description": "Distinct gene expression profile in sternal cartilage with no breakdown and reduction in metalloproteinase gene transcription",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "spaceflight",
+      "platform": "BION-M1",
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC6379395",
+      "year": 2019,
+      "journal": "NPJ Microgravity"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC4309301",
+      "title": "A Tissue Retrieval and Postharvest Processing Regimen for Rodent Reproductive Tissues Compatible with Long-Term Storage on the International Space Station and Postflight Biospecimen Sharing Program",
+      "abstract": "Collection and processing of tissues to preserve space flight effects from animals after return to Earth is challenging. Specimens must be harvested with minimal time after landing to minimize postflight readaptation alterations in protein expression/translation, posttranslational modifications, and expression, as well as changes in gene expression and tissue histological degradation after euthanasia. We report the development of a widely applicable strategy for determining the window of optimal species-specific and tissue-specific posteuthanasia harvest that can be utilized to integrate into multi-investigator Biospecimen Sharing Programs. We also determined methods for ISS-compatible long-term tissue storage (10 months at \u221280\u00b0C) that yield recovery of high quality mRNA and protein for western analysis after sample return. Our focus was reproductive tissues. The time following euthanasia where tissues could be collected and histological integrity was maintained varied with tissue and species ranging between 1 and 3 hours. RNA quality was preserved in key reproductive tissues fixed in RNAlater up to 40 min after euthanasia. Postfixation processing was also standardized for safe shipment back to our laboratory. Our strategy can be adapted for other tissues under NASA's Biospecimen Sharing Program or similar multi-investigator tissue sharing opportunities.",
+      "keywords": [],
+      "mesh_terms": [
+        "Animals",
+        "Female",
+        "Genitalia",
+        "Genitalia, Female",
+        "Gerbillinae",
+        "Male",
+        "Mice, Inbred C57BL",
+        "Preservation, Biological",
+        "Protein Stability",
+        "Proteins",
+        "RNA",
+        "Space Flight",
+        "Time Factors",
+        "Tissue Fixation",
+        "Tissue and Organ Harvesting"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Mouse",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        },
+        {
+          "name": "Mongolian gerbil",
+          "scientific_name": "Meriones unguiculatus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "alterations in protein expression",
+          "description": "postflight readaptation changes in protein expression, translation, and posttranslational modifications",
+          "system": "other"
+        },
+        {
+          "name": "changes in gene expression",
+          "description": "postflight alterations in gene expression due to spaceflight effects",
+          "system": "other"
+        },
+        {
+          "name": "tissue histological degradation",
+          "description": "degradation of tissue histology after euthanasia and spaceflight return",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "spaceflight",
+      "platform": "ISS",
+      "stressors": [
+        "microgravity",
+        "radiation"
+      ],
+      "extraction_confidence": 0.9
+    },
+    "metadata": {
+      "pmcid": "PMC4309301",
+      "year": 2015,
+      "journal": "BioMed Research International"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC3545801",
+      "title": "Growth of Carnobacterium spp. from permafrost under low pressure, temperature, and anoxic atmosphere has implications for Earth microbes on Mars",
+      "abstract": "The ability of terrestrial microorganisms to grow in the near-surface environment of Mars is of importance to the search for life and protection of that planet from forward contamination by human and robotic exploration. Because most water on present-day Mars is frozen in the regolith, permafrosts are considered to be terrestrial analogs of the martian subsurface environment. Six bacterial isolates were obtained from a permafrost borehole in northeastern Siberia capable of growth under conditions of low temperature (0 \u00b0C), low pressure (7 mbar), and a CO2-enriched anoxic atmosphere. By 16S ribosomal DNA analysis, all six permafrost isolates were identified as species of the genus Carnobacterium, most closely related to C. inhibens (five isolates) and C. viridans (one isolate). Quantitative growth assays demonstrated that the six permafrost isolates, as well as nine type species of Carnobacterium (C. alterfunditum, C. divergens, C. funditum, C. gallinarum, C. inhibens, C. maltaromaticum, C. mobile, C. pleistocenium, and C. viridans) were all capable of growth under cold, low-pressure, anoxic conditions, thus extending the low-pressure extreme at which life can function.",
+      "keywords": [
+        "astrobiology",
+        "planetary protection"
+      ],
+      "mesh_terms": [
+        "Soil Microbiology",
+        "Species Specificity",
+        "Temperature",
+        "Anaerobiosis",
+        "Atmospheric Pressure",
+        "Base Sequence",
+        "Carnobacterium",
+        "Cluster Analysis",
+        "DNA, Ribosomal",
+        "Exobiology",
+        "Extraterrestrial Environment",
+        "Mars",
+        "Molecular Sequence Data",
+        "Phylogeny",
+        "Sequence Analysis, DNA",
+        "Siberia"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Carnobacterium inhibens",
+          "scientific_name": "Carnobacterium inhibens",
+          "category": "microorganism"
+        },
+        {
+          "name": "Carnobacterium viridans",
+          "scientific_name": "Carnobacterium viridans",
+          "category": "microorganism"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "microbial growth under low pressure",
+          "description": "Ability of Carnobacterium species to grow at 7 mbar pressure simulating Mars conditions",
+          "system": "other"
+        },
+        {
+          "name": "cold adaptation",
+          "description": "Growth capability at 0 \u00b0C in permafrost isolates",
+          "system": "other"
+        },
+        {
+          "name": "anaerobic growth",
+          "description": "Growth under CO2-enriched anoxic atmosphere",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "low temperature",
+        "low pressure",
+        "anoxic atmosphere"
+      ],
+      "extraction_confidence": 0.9
+    },
+    "metadata": {
+      "pmcid": "PMC3545801",
+      "year": 2012,
+      "journal": "Proceedings of the National Academy of Sciences of the United States of America"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC4653813",
+      "title": "Spaceflight and hind limb unloading induce similar changes in electrical impedance characteristics of mouse gastrocnemius muscle",
+      "abstract": "ObjectiveTo assess the potential of electrical impedance myography (EIM) to serve as a marker of muscle fiber atrophy and secondarily as an indicator of bone deterioration by assessing the effects of spaceflight or hind limb unloading.MethodsIn the first experiment, 6 mice were flown aboard the space shuttle (STS-135) for 13 days and 8 earthbound mice served as controls. In the second experiment, 14 mice underwent hind limb unloading (HLU) for 13 days; 13 additional mice served as controls. EIM measurements were made on ex vivo gastrocnemius muscle. Quantitative microscopy and areal bone mineral density (aBMD) measurements of the hindlimb were also performed.ResultsReductions in the multifrequency phase-slope parameter were observed for both the space flight and HLU cohorts compared to their respective controls. For ground control and spaceflight groups, the values were 24.7\u00b11.3\u00b0/MHz and 14.1\u00b11.6\u00b0/MHz, respectively (p=0.0013); for control and HLU groups, the values were 23.9\u00b11.6\u00b0/MHz and 19.0\u00b11.0\u00b0/MHz, respectively (p=0.014). This parameter also correlated with muscle fiber size (\u03c1=0.65, p=0.011) for spaceflight and hind limb aBMD (\u03c1=0.65, p=0.0063) for both groups.ConclusionsThese data support the concept that EIM may serve as a useful tool for assessment of muscle disuse secondary to immobilization or microgravity.",
+      "keywords": [
+        "Muscle",
+        "Spaceflight",
+        "Hind Limb Unloading",
+        "Disuse",
+        "Electrical Impedance"
+      ],
+      "mesh_terms": [
+        "Animals",
+        "Body Composition",
+        "Electric Impedance",
+        "Hindlimb Suspension",
+        "Mice",
+        "Muscle, Skeletal",
+        "Space Flight",
+        "Weightlessness"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "mice",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "muscle atrophy",
+          "description": "Reductions in muscle fiber size in gastrocnemius due to disuse",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "bone loss",
+          "description": "Decreased areal bone mineral density in hindlimb",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "spaceflight",
+      "platform": "Space Shuttle",
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC4653813",
+      "year": 2013,
+      "journal": "Journal of musculoskeletal & neuronal interactions"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC4936552",
+      "title": "A ROS-Assisted Calcium Wave Dependent on the AtRBOHD NADPH Oxidase and TPC1 Cation Channel Propagates the Systemic Response to Salt Stress1[OPEN]",
+      "abstract": "Mathematical modeling coupled with direct measurement of Ca2+ and ROS dynamics suggest that ROS-assisted calcium-induced calcium release propagates stress-induced Ca2+ waves in plants.",
+      "keywords": [],
+      "mesh_terms": [
+        "Arabidopsis",
+        "Arabidopsis Proteins",
+        "Ascorbic Acid",
+        "Biphenyl Compounds",
+        "Calcium Channels",
+        "Calcium Signaling",
+        "Gene Knockout Techniques",
+        "Models, Biological",
+        "Molecular Imaging",
+        "NADPH Oxidases",
+        "Onium Compounds",
+        "Plant Roots",
+        "Reactive Oxygen Species",
+        "Salt Tolerance",
+        "Serum Albumin, Bovine",
+        "Stress, Physiological"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Arabidopsis",
+          "scientific_name": "Arabidopsis thaliana",
+          "category": "plant"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "calcium signaling",
+          "description": "ROS-assisted calcium-induced calcium release propagating stress-induced Ca2+ waves",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "computational_model",
+      "platform": null,
+      "stressors": [
+        "salt stress"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC4936552",
+      "year": 2016,
+      "journal": "Plant Physiology"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC6371294",
+      "title": "FAIRness and Usability for Open-access Omics Data Systems",
+      "abstract": "Omics data sharing is crucial to the biological research community, and the last decade or two has seen a huge rise in collaborative analysis systems, databases, and knowledge bases for omics and other systems biology data. We assessed the \u201cFAIRness\u201d of NASA\u2019s GeneLab Data Systems (GLDS) along with four similar kinds of systems in the research omics data domain, using 14 FAIRness metrics. The range of overall FAIRness scores was 6-12 (out of 14), average 10.1, and standard deviation 2.4. The range of Pass ratings for the metrics was 29-79%, Partial Pass 0-21%, and Fail 7-50%. The systems we evaluated performed the best in the areas of data findability and accessibility, and worst in the area of data interoperability. Reusability of metadata, in particular, was frequently not well supported. We relate our experiences implementing semantic integration of omics data from some of the assessed systems for federated querying and retrieval functions, given their shortcomings in data interoperability. Finally, we propose two new principles that Big Data system developers, in particular, should consider for maximizing data accessibility.",
+      "keywords": [],
+      "mesh_terms": [
+        "Access to Information",
+        "Big Data",
+        "Computational Biology",
+        "Data Systems",
+        "Databases, Factual",
+        "Health Information Interoperability",
+        "Information Dissemination",
+        "Information Storage and Retrieval",
+        "Semantics"
+      ]
+    },
+    "output": {
+      "organisms": [],
+      "phenomena": [],
+      "experimental_context": "review",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.3
+    },
+    "metadata": {
+      "pmcid": "PMC6371294",
+      "year": 2018,
+      "journal": "AMIA Annual Symposium Proceedings"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC6876156",
+      "title": "Swim exercise in Caenorhabditis elegans extends neuromuscular and gut healthspan, enhances learning ability, and protects against neurodegeneration",
+      "abstract": "SignificanceExercise is a powerful antiaging intervention that protects against cardiovascular disease, dementia, diabetes, sarcopenia, and cancer. How exercise promotes health benefits to multiple tissues in the body, however, remains poorly understood. We establish a young adult swim exercise regimen for the short-lived nematode Caenorhabditis elegans that induces health benefits at the neuromuscular, intestinal, and cognitive levels and protects against neurodegeneration in models of tauopathy, Alzheimer\u2019s disease, and Huntington\u2019s disease. Importantly, we found that swim exercise performed exclusively in early adulthood promotes long-lasting systemic benefits that are still detectable in midlife. The advantages of C. elegans as a short-lived genetic model will allow for dissection of the molecular circuitry involved in system-wide exercise benefits.",
+      "keywords": [
+        "exercise",
+        "muscle",
+        "aging",
+        "neurodegeneration"
+      ],
+      "mesh_terms": [
+        "Adaptation, Physiological",
+        "Animals",
+        "Caenorhabditis elegans",
+        "Intestines",
+        "Learning",
+        "Muscles",
+        "Nervous System Physiological Phenomena",
+        "Neuroprotection",
+        "Swimming"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Caenorhabditis elegans",
+          "scientific_name": "Caenorhabditis elegans",
+          "category": "microorganism"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "neuromuscular healthspan extension",
+          "description": "Exercise-induced extension of healthspan at the neuromuscular level, protecting against age-related decline",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "intestinal healthspan extension",
+          "description": "Exercise-induced benefits to gut health and function in aging",
+          "system": "metabolic"
+        },
+        {
+          "name": "enhanced learning ability",
+          "description": "Improvement in cognitive learning processes through exercise",
+          "system": "neurological"
+        },
+        {
+          "name": "neuroprotection",
+          "description": "Protection against neurodegeneration in models of tauopathy, Alzheimer\u2019s disease, and Huntington\u2019s disease",
+          "system": "neurological"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC6876156",
+      "year": 2019,
+      "journal": "Proceedings of the National Academy of Sciences of the United States of America"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC11998595",
+      "title": "The Last Mile in Beta-Cell Replacement Therapy for Type 1 Diabetes: Time to Grow Up",
+      "abstract": "Beta cell replacement therapy for type 1 diabetes (T1D) is undergoing a transformative shift, driven by advances in stem cell biology, gene editing, and tissue engineering. While islet transplantation has demonstrated proof-of-concept success in restoring endogenous insulin production, its clinical impact remains limited by donor scarcity, immune rejection, and procedural complexities. The emergence of stem cell-derived beta-like cells represents a paradigm shift, with initial clinical trials showing promising insulin secretion in vivo. However, translating these breakthroughs into scalable, widely accessible treatments poses significant challenges. Drawing parallels to space exploration, this paper argues that while scientific feasibility has been demonstrated, true accessibility remains elusive. Without a strategic shift, beta cell therapy risks becoming an elite intervention, restricted by cost and infrastructure. Lessons from gene and cell therapies for rare diseases highlight the dangers of unsustainable pricing and limited market viability. To bridge the \u201clast mile\u201d a Quality by Design approach is proposed, emphasizing scalability, ease of use, and economic feasibility from the outset. By emphasizing practical implementation over academic achievements, corporate interests, market economics, or patent constraints, beta cell therapy can progress from proof-of-concept to a viable, widely accessible treatment.",
+      "keywords": [
+        "diabetes type 1",
+        "beta cell replacement therapy",
+        "islet",
+        "scalability",
+        "stem cell derived beta cells"
+      ],
+      "mesh_terms": [
+        "Humans",
+        "Diabetes Mellitus, Type 1",
+        "Insulin-Secreting Cells",
+        "Islets of Langerhans Transplantation",
+        "Animals",
+        "Genetic Therapy"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "human",
+          "scientific_name": "Homo sapiens",
+          "category": "human"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "insulin secretion",
+          "description": "restoring endogenous insulin production via beta cell replacement",
+          "system": "metabolic"
+        },
+        {
+          "name": "immune rejection",
+          "description": "immune response limiting islet transplantation success",
+          "system": "immune"
+        }
+      ],
+      "experimental_context": "review",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC11998595",
+      "year": 2025,
+      "journal": "Transplant International"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC9784906",
+      "title": "Mannose Receptor Deficiency Impacts Bone Marrow and Circulating Immune Cells during High Fat Diet Induced Obesity",
+      "abstract": "The mannose receptor C-type 1 (Mrc1) is a C-type lectin receptor expressed on the immune cells and sinusoidal endothelial cells (ECs) of several tissues, including the bone marrow (BM). Parallel to systemic metabolic alterations and hematopoietic cell proliferation, high-fat diet (HFD) feeding increases the expression of Mrc1 in sinusoidal ECs, thus calling for the investigation of its role in bone marrow cell reprogramming and the metabolic profile during obesity. Mrc1\u2212/\u2212 mice and wild-type (WT) littermates were fed an HFD (45% Kcal/diet) for 20 weeks. Weight gain was monitored during the diet regimen and glucose and insulin tolerance were assessed. Extensive flow cytometry profiling, histological, and proteomic analyses were performed. After HFD feeding, Mrc1\u2212/\u2212 mice presented impaired medullary hematopoiesis with reduced myeloid progenitors and mature cells in parallel with an increase in BM adipocytes compared to controls. Accordingly, circulating levels of neutrophils and pro-inflammatory monocytes decreased in Mrc1\u2212/\u2212 mice together with reduced infiltration of macrophages in the visceral adipose tissue and the liver compared to controls. Liver histological profiling coupled with untargeted proteomic analysis revealed that Mrc1\u2212/\u2212 mice presented decreased liver steatosis and the downregulation of proteins belonging to pathways involved in liver dysfunction. This profile was reflected by improved glucose and insulin response and reduced weight gain during HFD feeding in Mrc1\u2212/\u2212 mice compared to controls. Our data show that during HFD feeding, mannose receptor deficiency impacts BM and circulating immune cell subsets, which is associated with reduced systemic inflammation and resistance to obesity development.",
+      "keywords": [
+        "Mrc1",
+        "obesity",
+        "bone marrow",
+        "inflammation"
+      ],
+      "mesh_terms": []
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "mouse",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "impaired medullary hematopoiesis",
+          "description": "Reduced myeloid progenitors and mature cells in bone marrow",
+          "system": "immune"
+        },
+        {
+          "name": "increased bone marrow adiposity",
+          "description": "Elevated adipocytes in bone marrow",
+          "system": "metabolic"
+        },
+        {
+          "name": "reduced circulating neutrophils and pro-inflammatory monocytes",
+          "description": "Decreased levels of neutrophils and pro-inflammatory monocytes in circulation",
+          "system": "immune"
+        },
+        {
+          "name": "reduced macrophage infiltration",
+          "description": "Decreased macrophage presence in visceral adipose tissue and liver",
+          "system": "immune"
+        },
+        {
+          "name": "decreased liver steatosis",
+          "description": "Reduced fat accumulation in liver with downregulation of dysfunction-related proteins",
+          "system": "metabolic"
+        },
+        {
+          "name": "improved glucose and insulin tolerance",
+          "description": "Enhanced metabolic responses leading to reduced weight gain and obesity resistance",
+          "system": "metabolic"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC9784906",
+      "year": 2022,
+      "journal": "Metabolites"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC3166430",
+      "title": "Spatial and temporal characteristics of vestibular convergence",
+      "abstract": "In all species studied, afferents from semicircular canals and otolith organs converge on central neurons in the brainstem. However, the spatial and temporal relationships between converging inputs and how these contribute to vestibular behaviors is not well understood. In the current study, we used discrete rotational and translational motion stimuli to characterize canal- and otolith-driven response components of convergent non-eye movement (NEM) neurons in the vestibular nuclear complex of alert pigeons. When compared to afferent responses, convergent canal signals had similar gain and phase ranges but exhibited greater spatial variability in their axes of preferred rotation. Convergent otolith signals also had similar mean gain and phase values to the afferent population but were spatially well-matched with the corresponding canal signals, cell-by-cell. However, neither response component alone nor a simple linear combination of these components was sufficient to predict actual net responses during combined canal-otolith stimulation. We discuss these findings in the context of previous studies of pigeon vestibular behaviors, and we compare our findings to similar studies in other species.",
+      "keywords": [
+        "vestibular",
+        "sensory convergence",
+        "brainstem"
+      ],
+      "mesh_terms": [
+        "Animals",
+        "Columbidae",
+        "Electrophysiology",
+        "Neural Pathways",
+        "Neurons",
+        "Orientation",
+        "Otolithic Membrane",
+        "Rotation",
+        "Semicircular Canals",
+        "Vestibular Nuclei",
+        "Vestibule, Labyrinth"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "pigeon",
+          "scientific_name": "Columba livia",
+          "category": "unknown"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "vestibular convergence",
+          "description": "convergence of afferents from semicircular canals and otolith organs on central neurons in the brainstem",
+          "system": "neurological"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC3166430",
+      "year": 2011,
+      "journal": "Neuroscience"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC8441986",
+      "title": "Circulating miRNA Spaceflight Signature Reveals Targets for Countermeasure Development",
+      "abstract": "SUMMARYWe have identified and validated a spaceflight-associated microRNA (miRNA) signature that is shared by rodents and humans in response to simulated, short-duration and long-duration spaceflight. Previous studies have identified miRNAs that regulate rodent responses to spaceflight in low-Earth orbit, and we have confirmed the expression of these proposed spaceflight-associated miRNAs in rodents reacting to simulated spaceflight conditions. Moreover, astronaut samples from the NASA Twins Study confirmed these expression signatures in miRNA sequencing, single-cell RNA sequencing (scRNA-seq), and single-cell assay for transposase accessible chromatin (scATAC-seq) data. Additionally, a subset of these miRNAs (miR-125, miR-16, and let-7a) was found to regulate vascular damage caused by simulated deep space radiation. To demonstrate the physiological relevance of key spaceflight-associated miRNAs, we utilized antagomirs to inhibit their expression and successfully rescue simulated deep-space-radiation-mediated damage in human 3D vascular constructs.",
+      "keywords": [],
+      "mesh_terms": [
+        "Animals",
+        "Circulating MicroRNA",
+        "Female",
+        "Gene Expression",
+        "Gene Expression Profiling",
+        "Humans",
+        "Male",
+        "Mice",
+        "Mice, Inbred BALB C",
+        "MicroRNAs",
+        "Middle Aged",
+        "Rats",
+        "Sequence Analysis, RNA",
+        "Space Flight",
+        "Transcriptome",
+        "Weightlessness",
+        "Weightlessness Simulation"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Mice",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        },
+        {
+          "name": "Rats",
+          "scientific_name": "Rattus norvegicus",
+          "category": "mammal"
+        },
+        {
+          "name": "Humans",
+          "scientific_name": "Homo sapiens",
+          "category": "human"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "microRNA expression dysregulation",
+          "description": "Spaceflight-associated changes in circulating miRNA signatures regulating physiological responses",
+          "system": "cardiovascular"
+        },
+        {
+          "name": "vascular damage",
+          "description": "Radiation-induced damage in vascular tissues regulated by specific miRNAs like miR-125, miR-16, and let-7a",
+          "system": "cardiovascular"
+        }
+      ],
+      "experimental_context": "spaceflight",
+      "platform": "ISS",
+      "stressors": [
+        "microgravity",
+        "radiation"
+      ],
+      "extraction_confidence": 0.9
+    },
+    "metadata": {
+      "pmcid": "PMC8441986",
+      "year": 2020,
+      "journal": "Cell reports"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC3554398",
+      "title": "New perspectives on viable microbial communities in low-biomass cleanroom environments",
+      "abstract": "The advent of phylogenetic DNA microarrays and high-throughput pyrosequencing technologies has dramatically increased the resolution and accuracy of detection of distinct microbial lineages in mixed microbial assemblages. Despite an expanding array of approaches for detecting microbes in a given sample, rapid and robust means of assessing the differential viability of these cells, as a function of phylogenetic lineage, remain elusive. In this study, pre-PCR propidium monoazide (PMA) treatment was coupled with downstream pyrosequencing and PhyloChip DNA microarray analyses to better understand the frequency, diversity and distribution of viable bacteria in spacecraft assembly cleanrooms. Sample fractions not treated with PMA, which were indicative of the presence of both live and dead cells, yielded a great abundance of highly diverse bacterial pyrosequences. In contrast, only 1% to 10% of all of the pyrosequencing reads, arising from a few robust bacterial lineages, originated from sample fractions that had been pre-treated with PMA. The results of PhyloChip analyses of PMA-treated and -untreated sample fractions were in agreement with those of pyrosequencing. The viable bacterial population detected in cleanrooms devoid of spacecraft hardware was far more diverse than that observed in cleanrooms that housed mission-critical spacecraft hardware. The latter was dominated by hardy, robust organisms previously reported to survive in oligotrophic cleanroom environments. Presented here are the findings of the first ever comprehensive effort to assess the viability of cells in low-biomass environmental samples, and correlate differential viability with phylogenetic affiliation.",
+      "keywords": [
+        "viability",
+        "microarray",
+        "454 pyrosequencing",
+        "PMA",
+        "PhyloChip"
+      ],
+      "mesh_terms": [
+        "Azides",
+        "Bacteria",
+        "Biomass",
+        "DNA, Bacterial",
+        "Environment, Controlled",
+        "Environmental Microbiology",
+        "Microbial Viability",
+        "Oligonucleotide Array Sequence Analysis",
+        "Phylogeny",
+        "Polymerase Chain Reaction",
+        "Propidium",
+        "RNA, Ribosomal, 16S",
+        "Spacecraft"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "bacteria",
+          "scientific_name": "Bacteria",
+          "category": "microorganism"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "microbial viability",
+          "description": "Differential viability of bacterial cells as a function of phylogenetic lineage in low-biomass cleanroom environments",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "isolation"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC3554398",
+      "year": 2012,
+      "journal": "The ISME Journal"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC2910419",
+      "title": "DEVELOPMENT OF OTOLITH RECEPTORS IN JAPANESE QUAIL",
+      "abstract": "The present study examined the morphological development of the otolith vestibular receptors in quail. Here we describe epithelial growth, hair cell density, stereocilia polarization, and afferent nerve innervation during development. The otolith maculae epithelial areas increased exponentially throughout embryonic development reaching asymptotic values near post-hatch day P7. Increases in hair cell density were dependent upon macular location; striolar hair cells developed first followed by hair cells in extrastriola regions. Stereocilia polarization was initiated early, with defining reversal zones forming at E8. Less than half of all immature hair cells observed had non-polarized internal kinocilia with the remaining exhibiting planar polarity. Immunohistochemistry and neural tracing techniques were employed to examine the shape and location of the striolar regions. Initial innervation of the maculae was by small fibers with terminal growth cones at E6, followed by collateral branches with apparent bouton terminals at E8. Calyceal terminal formation began at E10, however no mature calyces were observed until E12, when all fibers appeared to be dimorphs. Calyx afferents innervating only type I hair cells did not develop until E14. Finally, the topographic organization of afferent macular innervation in the adult quail utricle was quantified. Calyx and dimorph afferents were primarily confined to the striolar regions, while bouton fibers were located in the extrastriola and type II band. Calyx fibers were the least complex, followed by dimorph units. Bouton fibers had large innervation fields, with arborous branches and many terminal boutons.",
+      "keywords": [
+        "Vestibular",
+        "motion detection",
+        "spatial orientation",
+        "gravity perception"
+      ],
+      "mesh_terms": []
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Japanese quail",
+          "scientific_name": "Coturnix japonica",
+          "category": "unknown"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "Otolith receptor development",
+          "description": "Morphological development including epithelial growth, hair cell density changes, stereocilia polarization, and afferent nerve innervation in vestibular maculae",
+          "system": "neurological"
+        }
+      ],
+      "experimental_context": "review",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC2910419",
+      "year": 2010,
+      "journal": "Developmental neurobiology"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC3774184",
+      "title": "Partial weight suspension: a novel murine model for investigating adaptation to reduced musculoskeletal loading",
+      "abstract": "We developed a new model of hypodynamic loading to support mice in chronic conditions of partial weight bearing, enabling simulations of reduced gravity environments and related clinical conditions. The novel hardware allows for reduced loading between 10 and 80% of normal body weight on all four limbs and enables characteristic quadrupedal locomotion. Ten-week-old female BALB/cByJ mice were supported for 21 days under Mars-analog suspension (38% weight bearing) and compared with age-matched and jacketed (100% weight bearing) controls. After an initial adaptation, weight gain did not differ between groups, suggesting low levels of animal stress. Relative to age-matched controls, mice exposed to Mars-analog loading had significantly lower muscle mass (\u221223% gastrocnemius wet mass, P < 0.0001); trabecular and cortical bone morphology (i.e., trabecular bone volume: \u221224% at the distal femur, and cortical thickness: \u221211% at the femoral midshaft, both P < 0.001); and biomechanical properties of the femoral midshaft (i.e., \u221227% ultimate moment, P < 0.001). Bone formation indexes were decreased compared with age-matched full-weight-bearing mice, whereas resorption parameters were largely unchanged. Singly housed, full-weight-bearing controls with forelimb jackets were largely similar to age-matched, group-housed controls, although a few variables differed and warrant further investigation. Altogether, these data provide strong rationale for use of our new model of partial weight bearing to further explore the musculoskeletal response to reduced loading environments.",
+      "keywords": [
+        "mice",
+        "unloading",
+        "disuse osteoporosis",
+        "partial weightbearing",
+        "spaceflight"
+      ],
+      "mesh_terms": [
+        "Adaptation, Physiological",
+        "Animals",
+        "Biomechanical Phenomena",
+        "Body Weight",
+        "Disease Models, Animal",
+        "Eating",
+        "Equipment Design",
+        "Female",
+        "Femur",
+        "Hindlimb Suspension",
+        "Locomotion",
+        "Mars",
+        "Mice",
+        "Mice, Inbred BALB C",
+        "Muscle, Skeletal",
+        "Muscular Atrophy",
+        "Osteogenesis",
+        "Space Flight",
+        "Time Factors",
+        "Weight-Bearing",
+        "Weightlessness Simulation",
+        "X-Ray Microtomography"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "mice",
+          "scientific_name": "Mus musculus",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "Muscular Atrophy",
+          "description": "Significant reduction in gastrocnemius muscle wet mass (-23%) due to reduced loading",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "Disuse Osteoporosis",
+          "description": "Decreased trabecular bone volume (-24% at distal femur), cortical thickness (-11% at femoral midshaft), and biomechanical properties (-27% ultimate moment)",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "Reduced Osteogenesis",
+          "description": "Decreased bone formation indexes with largely unchanged resorption parameters",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "microgravity",
+        "unloading"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC3774184",
+      "year": 2010,
+      "journal": "Journal of Applied Physiology"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC8450295",
+      "title": "Telomere length assessments of muscle stem cells in rodent and human skeletal muscle sections",
+      "abstract": "SummaryMeasurements of telomere length in skeletal muscle stem cells (MuSCs), a rare cell population within muscles, provide insights into cellular dysfunction in diseased conditions. Here, we describe a protocol (cryosection muscle quantitative fluorescent in situhybridization) using skeletal muscle cryosections for assessments of telomere length in MuSCs, in their native environment. Using a free software, telomere length measurements are assessed on a single-cell level. We also provide methodology to perform data analyses in several ways.For complete details on the use and execution of this protocol, please refer to Tichy et al. (2021).",
+      "keywords": [
+        "Cell Biology",
+        "Cell isolation",
+        "Cell-based Assays",
+        "In Situ Hybridization",
+        "Microscopy",
+        "Stem Cells"
+      ],
+      "mesh_terms": [
+        "Animals",
+        "Humans",
+        "Muscle Fibers, Skeletal",
+        "Muscle, Skeletal",
+        "Myoblasts",
+        "Rodentia",
+        "Telomere"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "rodent",
+          "scientific_name": "Rodentia",
+          "category": "mammal"
+        },
+        {
+          "name": "human",
+          "scientific_name": "Homo sapiens",
+          "category": "human"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "telomere length",
+          "description": "Measurements of telomere length in skeletal muscle stem cells to assess cellular dysfunction",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "review",
+      "platform": null,
+      "stressors": [],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC8450295",
+      "year": 2021,
+      "journal": "STAR Protocols"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC3187170",
+      "title": "Induction of Attachment-Independent Biofilm Formation and Repression of hfq Expression by Low-Fluid-Shear Culture of Staphylococcus aureus \u25bf",
+      "abstract": "The opportunistic pathogen Staphylococcus aureus encounters a wide variety of fluid shear levels within the human host, and they may play a key role in dictating whether this organism adopts a commensal interaction with the host or transitions to cause disease. By using rotating-wall vessel bioreactors to create a physiologically relevant, low-fluid-shear environment, S. aureus was evaluated for cellular responses that could impact its colonization and virulence. S. aureus cells grown in a low-fluid-shear environment initiated a novel attachment-independent biofilm phenotype and were completely encased in extracellular polymeric substances. Compared to controls, low-shear-cultured cells displayed slower growth and repressed virulence characteristics, including decreased carotenoid production, increased susceptibility to oxidative stress, and reduced survival in whole blood. Transcriptional whole-genome microarray profiling suggested alterations in metabolic pathways. Further genetic expression analysis revealed downregulation of the RNA chaperone Hfq, which parallels low-fluid-shear responses of certain Gram-negative organisms. This is the first study to report an Hfq association with fluid shear in a Gram-positive organism, suggesting an evolutionarily conserved response to fluid shear among structurally diverse prokaryotes. Collectively, our results suggest S. aureus responds to a low-fluid-shear environment by initiating a biofilm/colonization phenotype with diminished virulence characteristics, which could lead to insight into key factors influencing the divergence between infection and colonization during the initial host-pathogen interaction.",
+      "keywords": [],
+      "mesh_terms": [
+        "Biofilms",
+        "Bioreactors",
+        "Gene Expression Profiling",
+        "Gene Expression Regulation, Bacterial",
+        "Host Factor 1 Protein",
+        "Microarray Analysis",
+        "Staphylococcus aureus",
+        "Stress, Physiological",
+        "Virulence Factors"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "Staphylococcus aureus",
+          "scientific_name": "Staphylococcus aureus",
+          "category": "microorganism"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "attachment-independent biofilm formation",
+          "description": "Initiation of a novel biofilm phenotype encased in extracellular polymeric substances in response to low-fluid-shear",
+          "system": "other"
+        },
+        {
+          "name": "repression of hfq expression",
+          "description": "Downregulation of the RNA chaperone Hfq gene in low-fluid-shear conditions",
+          "system": "other"
+        },
+        {
+          "name": "repressed virulence",
+          "description": "Decreased carotenoid production, increased susceptibility to oxidative stress, and reduced survival in whole blood",
+          "system": "other"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "microgravity"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC3187170",
+      "year": 2011,
+      "journal": "Applied and Environmental Microbiology"
+    }
+  },
+  {
+    "input": {
+      "pmcid": "PMC6036641",
+      "title": "Cortical Thinning and Structural Bone Changes in Non-human Primates Following Single Fraction Whole Chest Radiation",
+      "abstract": "Stereotactic body radiation therapy (SBRT) is associated with an increased risk of vertebral compression fracture (1\u20135). While bone is typically considered radiation-resistant, fractures frequently occur within the first year of SBRT (6\u201311). Our purpose was to determine if rapid deterioration of bone occurs in vertebrae post-irradiation (IR). Sixteen male rhesus macaques non-human primates (NHPs) were analyzed after total chest irradiation (IR) to a midplane dose of 10 Gy. Ages at IR varied from 45 \u2013 134 mo. Computed tomography (CT) scans were taken 2 mo prior to IR and 2, 4, 6, and 8 mo post-IR for all animals. Bone mineral density (BMD) and cortical thickness (Ct.Th) were calculated longitudinally for thoracic (T)9, lumbar (L)2, and L4 vertebral bodies; gross morphology and histopathology were assessed per vertebra. Greater mortality (related to pulmonary toxicity) was noted in NHPs < 50 mo at time of IR vs NHPs > 50mo (p = 0.03). Animals older than 50 mo at IR lost Ct.Th in T9 by 2 mo post IR (p = 0.0009), which persisted to 8 mo. In contrast, no loss of Ct.Th was observed in vertebrae out-of-field (L2 and L4). Loss of BMD was observed by 4 mo post-IR for T9, and 6 mo post IR for L2 and L4 (p < 0.01). For NHPs younger than 50 mo at IR, both Ct.Th and BMD decreased in T9, L2, and L4 by 2 mo post-IR (p < 0.05). Regions that exhibited the greatest degree of cortical thinning as determined from CT scans also exhibited increased porosity histologically. Rapid loss of Ct.Th was observed after high dose chest IR in NHPs. Younger age at IR was associated with increased pneumonitis related mortality, as well as greater loss of both BMD and Ct.Th at both in-and out-of-field vertebrae. Older NHPs exhibited rapid loss of BMD and Ct.Th from in-field vertebrae, but only loss of BMD in out of field vertebrae. Bone is sensitive to high dose radiation, and rapid loss of bone structure and density could facilitate fractures.",
+      "keywords": [],
+      "mesh_terms": [
+        "Animals",
+        "Bone Density",
+        "Cortical Bone",
+        "Lumbar Vertebrae",
+        "Macaca mulatta",
+        "Male",
+        "Organ Size",
+        "Thoracic Vertebrae",
+        "Tomography, X-Ray Computed"
+      ]
+    },
+    "output": {
+      "organisms": [
+        {
+          "name": "rhesus macaque",
+          "scientific_name": "Macaca mulatta",
+          "category": "mammal"
+        }
+      ],
+      "phenomena": [
+        {
+          "name": "cortical thinning",
+          "description": "Rapid loss of cortical thickness in vertebral bodies post-irradiation",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "bone mineral density loss",
+          "description": "Decrease in BMD observed in thoracic and lumbar vertebrae after irradiation",
+          "system": "musculoskeletal"
+        },
+        {
+          "name": "increased bone porosity",
+          "description": "Histological increase in porosity correlating with cortical thinning regions",
+          "system": "musculoskeletal"
+        }
+      ],
+      "experimental_context": "ground_simulation",
+      "platform": null,
+      "stressors": [
+        "radiation"
+      ],
+      "extraction_confidence": 0.7
+    },
+    "metadata": {
+      "pmcid": "PMC6036641",
+      "year": 2018,
+      "journal": "Radiation research"
+    }
+  }
+]
