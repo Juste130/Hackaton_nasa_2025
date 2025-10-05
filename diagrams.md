@@ -362,7 +362,7 @@ graph LR
 graph TB
     subgraph "Search Engine Core"
         INIT[Multi-Modal Initialization]
-        MODES[Dynamic Search Modes<br/>SEMANTIC | KEYWORD | HYBRID]
+        MODES[Dynamic Search Modes<br/>SEMANTIC • KEYWORD • HYBRID]
     end
     
     subgraph "Semantic Intelligence"
