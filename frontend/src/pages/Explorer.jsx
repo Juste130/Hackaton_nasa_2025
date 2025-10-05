@@ -4,11 +4,15 @@ import PublicationCard from '../components/PublicationCard';
 import KnowledgeGraph from '../components/KnowledgeGraph';
 import DataTable from '../components/DataTable';
 import AISummaryPanel from '../components/AISummaryPanel';
+import GraphControls from '../components/GraphControls';
+import graphApiService from '../services/graphApi';
 import './Explorer.css';
 
 const Explorer = () => {
   const [activeView, setActiveView] = useState('cards'); // 'cards', 'graph', 'table'
   const [filteredPublications, setFilteredPublications] = useState(publications);
+  
+  // States pour les filtres classiques (Cards/Table)
   const years = publications.map(pub => new Date(pub.date).getFullYear());
   const minYear = Math.min(...years);
   const maxYear = Math.max(...years);
@@ -24,9 +28,15 @@ const Explorer = () => {
   const [selectedPublications, setSelectedPublications] = useState([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
 
-  // Year range for slider
+  // States pour le graphe
+  const [graphData, setGraphData] = useState(null);
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [graphError, setGraphError] = useState(null);
 
+  // Filtrage pour Cards et Table uniquement
   useEffect(() => {
+    if (activeView === 'graph') return; // Pas de filtrage automatique pour le graphe
+    
     let results = publications;
 
     // Text search filter
@@ -60,8 +70,9 @@ const Explorer = () => {
     });
 
     setFilteredPublications(results);
-  }, [selectedFilters, searchQuery]);
+  }, [selectedFilters, searchQuery, activeView]);
 
+  // Handlers pour filtres classiques
   const handleFilterToggle = (category, value) => {
     setSelectedFilters(prev => {
       const newFilters = { ...prev };
@@ -111,6 +122,59 @@ const Explorer = () => {
     setSelectedPublications([]);
   };
 
+  // Handlers pour le graphe
+  const handleGraphSearch = async (searchParams) => {
+    setGraphLoading(true);
+    setGraphError(null);
+    try {
+      const data = await graphApiService.searchGraph(searchParams);
+      setGraphData(data);
+    } catch (err) {
+      setGraphError(err.message);
+      console.error('Graph search error:', err);
+    } finally {
+      setGraphLoading(false);
+    }
+  };
+
+  const handleGraphFilter = async (filterParams) => {
+    setGraphLoading(true);
+    setGraphError(null);
+    try {
+      const data = await graphApiService.filterGraph(filterParams);
+      setGraphData(data);
+    } catch (err) {
+      setGraphError(err.message);
+      console.error('Graph filter error:', err);
+    } finally {
+      setGraphLoading(false);
+    }
+  };
+
+  const handleGraphLoadFull = async () => {
+    setGraphLoading(true);
+    setGraphError(null);
+    try {
+      const data = await graphApiService.getFullGraph({ limit: 100 });
+      setGraphData(data);
+    } catch (err) {
+      setGraphError(err.message);
+      console.error('Graph load error:', err);
+    } finally {
+      setGraphLoading(false);
+    }
+  };
+
+  const handleGraphClear = () => {
+    setGraphData(null);
+    setGraphError(null);
+  };
+
+  const handleGraphCenter = () => {
+    // Cette fonction sera appelée depuis KnowledgeGraph
+    console.log('Center graph view');
+  };
+
   const selectedPubData = publications.filter(pub => 
     selectedPublications.includes(pub.id)
   );
@@ -119,90 +183,110 @@ const Explorer = () => {
     <div className="explorer">
       <div className="explorer-header fade-in">
         <h1>Explore Knowledge Base</h1>
-        <p>{filteredPublications.length} publications found • {selectedPublications.length} selected</p>
+        <p>
+          {activeView === 'graph' 
+            ? `${graphData?.stats?.total_nodes || 0} nodes • ${graphData?.stats?.total_edges || 0} edges`
+            : `${filteredPublications.length} publications found • ${selectedPublications.length} selected`
+          }
+        </p>
       </div>
 
-      <div className="explorer-content">
-        {/* Filters Sidebar */}
+      <div className={`explorer-content ${activeView === 'graph' ? 'graph-mode' : ''}`}>
+        {/* Sidebar conditionnel */}
         <aside className="filters-sidebar slide-in">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search publications..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
+          {activeView === 'graph' ? (
+            // Contrôles du graphe
+            <GraphControls
+              onSearch={handleGraphSearch}
+              onFilter={handleGraphFilter}
+              onLoadFull={handleGraphLoadFull}
+              onClear={handleGraphClear}
+              onCenter={handleGraphCenter}
+              loading={graphLoading}
+              stats={graphData?.stats}
             />
-          </div>
+          ) : (
+            // Filtres classiques pour Cards et Table
+            <>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search publications..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+              </div>
 
-          {/* Year Range Filter */}
-          <div className="filter-group">
-            <h3>Publication Year</h3>
-            <div className="year-inputs">
-              <div className="year-input-group">
-                <label htmlFor="year-from">From:</label>
-                <input
-                  id="year-from"
-                  type="number"
-                  min={minYear}
-                  max={maxYear}
-                  value={selectedFilters.yearRange[0]}
-                  onChange={(e) => {
-                    let newStart = parseInt(e.target.value) || minYear;
-                    // Validation : s'assurer que l'année est dans la plage valide
-                    newStart = Math.max(minYear, Math.min(newStart, selectedFilters.yearRange[1]));
-                    handleYearRangeChange([newStart, selectedFilters.yearRange[1]]);
-                  }}
-                  className="year-input"
-                  placeholder={minYear.toString()}
-                />
-              </div>
-              
-              <div className="year-input-group">
-                <label htmlFor="year-to">To:</label>
-                <input
-                  id="year-to"
-                  type="number"
-                  min={minYear}
-                  max={maxYear}
-                  value={selectedFilters.yearRange[1]}
-                  onChange={(e) => {
-                    let newEnd = parseInt(e.target.value) || maxYear;
-                    // Validation : s'assurer que l'année est dans la plage valide
-                    newEnd = Math.max(selectedFilters.yearRange[0], Math.min(newEnd, maxYear));
-                    handleYearRangeChange([selectedFilters.yearRange[0], newEnd]);
-                  }}
-                  className="year-input"
-                  placeholder={maxYear.toString()}
-                />
-              </div>
-            </div>
-          </div>
-          {/* Dynamic Filters */}
-          {Object.entries(filters).map(([category, options]) => (
-            <div key={category} className="filter-group">
-              <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
-              <div className="filter-options">
-                {options.map(option => (
-                  <label key={option} className="filter-option">
+              {/* Year Range Filter */}
+              <div className="filter-group">
+                <h3>Publication Year</h3>
+                <div className="year-inputs">
+                  <div className="year-input-group">
+                    <label htmlFor="year-from">From:</label>
                     <input
-                      type="checkbox"
-                      checked={selectedFilters[category].includes(option)}
-                      onChange={() => handleFilterToggle(category, option)}
+                      id="year-from"
+                      type="number"
+                      min={minYear}
+                      max={maxYear}
+                      value={selectedFilters.yearRange[0]}
+                      onChange={(e) => {
+                        let newStart = parseInt(e.target.value) || minYear;
+                        newStart = Math.max(minYear, Math.min(newStart, selectedFilters.yearRange[1]));
+                        handleYearRangeChange([newStart, selectedFilters.yearRange[1]]);
+                      }}
+                      className="year-input"
+                      placeholder={minYear.toString()}
                     />
-                    <span>{option}</span>
-                    <span className="filter-count">
-                      ({publications.filter(pub => pub[category]?.includes(option)).length})
-                    </span>
-                  </label>
-                ))}
+                  </div>
+                  
+                  <div className="year-input-group">
+                    <label htmlFor="year-to">To:</label>
+                    <input
+                      id="year-to"
+                      type="number"
+                      min={minYear}
+                      max={maxYear}
+                      value={selectedFilters.yearRange[1]}
+                      onChange={(e) => {
+                        let newEnd = parseInt(e.target.value) || maxYear;
+                        newEnd = Math.max(selectedFilters.yearRange[0], Math.min(newEnd, maxYear));
+                        handleYearRangeChange([selectedFilters.yearRange[0], newEnd]);
+                      }}
+                      className="year-input"
+                      placeholder={maxYear.toString()}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
 
-          <button className="clear-filters-btn" onClick={clearAllFilters}>
-            Clear All Filters
-          </button>
+              {/* Dynamic Filters */}
+              {Object.entries(filters).map(([category, options]) => (
+                <div key={category} className="filter-group">
+                  <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                  <div className="filter-options">
+                    {options.map(option => (
+                      <label key={option} className="filter-option">
+                        <input
+                          type="checkbox"
+                          checked={selectedFilters[category].includes(option)}
+                          onChange={() => handleFilterToggle(category, option)}
+                        />
+                        <span>{option}</span>
+                        <span className="filter-count">
+                          ({publications.filter(pub => pub[category]?.includes(option)).length})
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              <button className="clear-filters-btn" onClick={clearAllFilters}>
+                Clear All Filters
+              </button>
+            </>
+          )}
         </aside>
 
         {/* Main Content Area */}
@@ -230,8 +314,8 @@ const Explorer = () => {
               </button>
             </div>
 
-            {/* Selection Controls */}
-            {filteredPublications.length > 0 && (
+            {/* Selection Controls - seulement pour Cards et Table */}
+            {activeView !== 'graph' && filteredPublications.length > 0 && (
               <div className="selection-controls">
                 <label className="select-all-checkbox">
                   <input
@@ -251,6 +335,14 @@ const Explorer = () => {
                 )}
               </div>
             )}
+
+            {/* Graph Error Display */}
+            {activeView === 'graph' && graphError && (
+              <div className="graph-error">
+                <span>⚠️ {graphError}</span>
+                <button onClick={() => setGraphError(null)}>✕</button>
+              </div>
+            )}
           </div>
 
           {/* Results Area */}
@@ -267,8 +359,7 @@ const Explorer = () => {
                       onClickForSummary={() => {
                         setSelectedPublications([publication.id]);
                         setShowAIPanel(true);
-                      }
-                      }
+                      }}
                     />
                   ))}
                 </div>
@@ -278,8 +369,10 @@ const Explorer = () => {
             {activeView === 'graph' && (
               <div className="graph-view">
                 <KnowledgeGraph 
-                  publications={filteredPublications}
-                  onNodeClick={(publication) => handlePublicationSelect(publication.id)}
+                  graphData={graphData}
+                  loading={graphLoading}
+                  error={graphError}
+                  onNodeClick={(node) => console.log('Node clicked:', node)}
                 />
               </div>
             )}
@@ -294,7 +387,8 @@ const Explorer = () => {
               </div>
             )}
 
-            {filteredPublications.length === 0 && (
+            {/* No Results - seulement pour Cards et Table */}
+            {activeView !== 'graph' && filteredPublications.length === 0 && (
               <div className="no-results">
                 <div className="no-results-icon">🔍</div>
                 <h3>No publications found</h3>
@@ -302,6 +396,15 @@ const Explorer = () => {
                 <button className="btn btn-secondary" onClick={clearAllFilters}>
                   Clear All Filters
                 </button>
+              </div>
+            )}
+
+            {/* Graph No Data */}
+            {activeView === 'graph' && !graphData && !graphLoading && (
+              <div className="graph-no-data">
+                <div className="no-results-icon">🌐</div>
+                <h3>No graph data loaded</h3>
+                <p>Use the controls on the left to search or load the knowledge graph</p>
               </div>
             )}
           </div>

@@ -349,6 +349,212 @@
   transform: none;
 }
 
+/* Nouveaux styles */
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.clear-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.clear-button:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.connection-error {
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.connection-error button {
+  background: #c33;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.error-message .message-content {
+  background: #fee !important;
+  border-left: 3px solid #e74c3c;
+}
+
+.tools-used {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.tools-icon {
+  font-size: 0.8rem;
+}
+
+.confidence-indicator {
+  margin-top: 0.5rem;
+}
+
+.confidence-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.confidence-badge.high {
+  background: #d4edda;
+  color: #155724;
+}
+
+.confidence-badge.medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.confidence-badge.low {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.retry-button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+
+.retry-button:hover {
+  background: #c0392b;
+}
+
+.loading-text {
+  font-style: italic;
+  color: #666;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.suggestion-chip {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: #f8f9fa;
+  border-color: #3498db;
+}
+
+/* Ajouts pour le support Markdown */
+.message-content .markdown-content {
+  margin: 0;
+}
+
+.message-content .markdown-content .md-paragraph:first-child {
+  margin-top: 0;
+}
+
+.message-content .markdown-content .md-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Ajustements pour les messages bot avec markdown */
+.bot-message .message-content {
+  padding: 1rem 1.2rem;
+  max-width: none; /* Permettre plus de largeur pour les tableaux et listes */
+}
+
+.user-message .message-content {
+  padding: 0.8rem 1.2rem;
+}
+
+/* S'assurer que le markdown hérite des couleurs de messages */
+.bot-message .markdown-content {
+  color: inherit;
+}
+
+.user-message .markdown-content {
+  color: inherit;
+}
+
+.user-message .markdown-content .md-h1,
+.user-message .markdown-content .md-h2,
+.user-message .markdown-content .md-h3,
+.user-message .markdown-content .md-h4,
+.user-message .markdown-content .md-h5,
+.user-message .markdown-content .md-h6 {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.user-message .markdown-content .md-link {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.user-message .markdown-content .md-link:hover {
+  color: white;
+}
+
+.user-message .markdown-content .md-inline-code {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.user-message .markdown-content .md-blockquote {
+  border-left-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments pour markdown */
+@media (max-width: 480px) {
+  .bot-message .message-content {
+    padding: 0.7rem 1rem;
+  }
+  
+  .message-content .markdown-content .md-table-wrapper {
+    margin: 0.3rem -0.5rem; /* Permettre aux tableaux de sortir un peu du padding */
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .chat-modal-overlay {
@@ -385,5 +591,19 @@
   .message-content {
     padding: 0.6rem 1rem;
     font-size: 0.85rem;
+  }
+  
+  .chat-modal-content {
+    height: 100vh;
+    border-radius: 0;
+  }
+  
+  .suggestion-chips {
+    max-height: 120px;
+  }
+  
+  .suggestion-chip {
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
 }
