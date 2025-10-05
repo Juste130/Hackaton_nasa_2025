@@ -10,6 +10,8 @@ import logging
 from neo4j_client import Neo4jClient
 from neo4j_queries import KnowledgeGraphAnalytics
 from search_engine import HybridSearchEngine, SearchMode
+from neo4j.time import DateTime as Neo4jDateTime
+from datetime import datetime
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,25 @@ analytics = KnowledgeGraphAnalytics(neo4j_client)
 search_engine = HybridSearchEngine()
 
 router = APIRouter(prefix="/api/graph", tags=["Knowledge Graph"])
+
+
+# === Helper Functions for Serialization ===
+
+def serialize_neo4j_types(obj):
+    """
+    Convert Neo4j types to Python native types for JSON serialization
+    Handles Neo4j DateTime, Date, Time, and other special types
+    """
+    if isinstance(obj, Neo4jDateTime):
+        # Convert Neo4j DateTime to ISO format string
+        return obj.iso_format()
+    elif isinstance(obj, dict):
+        return {k: serialize_neo4j_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_neo4j_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(serialize_neo4j_types(item) for item in obj)
+    return obj
 
 
 # === Pydantic Models ===
@@ -128,8 +149,8 @@ def format_node(record: Dict) -> GraphNode:
     labels = node.get('labels', [])
     label = labels[0] if labels else 'Unknown'
     
-    # Clean properties
-    properties = dict(node)
+    # Clean properties and serialize Neo4j types
+    properties = serialize_neo4j_types(dict(node))
     properties.pop('id', None)
     properties.pop('labels', None)
     
@@ -152,8 +173,8 @@ def format_edge(record: Dict) -> GraphEdge:
     target_id = str(record.get('target_id', 'unknown'))
     rel_type = record.get('rel_type', rel.get('type', 'RELATED'))
     
-    # Clean properties
-    properties = dict(rel) if isinstance(rel, dict) else {}
+    # Clean properties and serialize Neo4j types
+    properties = serialize_neo4j_types(dict(rel) if isinstance(rel, dict) else {})
     properties.pop('type', None)
     
     edge_id = f"{source_id}_{rel_type}_{target_id}"
@@ -167,6 +188,19 @@ def format_edge(record: Dict) -> GraphEdge:
         properties=properties,
         weight=float(weight) if weight else 1.0
     )
+
+
+def get_id_property(label: str) -> str:
+    """Get the ID property for a node label"""
+    id_properties = {
+        "Publication": "pmcid",
+        "Organism": "scientific_name",
+        "Phenomenon": "name",
+        "Platform": "name",
+        "Stressor": "name",
+        "Author": "name"
+    }
+    return id_properties.get(label, "name")
 
 
 # === API Endpoints ===
@@ -207,23 +241,14 @@ async def get_full_graph(
             
             # Get edges between these nodes
             if node_ids:
-                edge_query = """
-                    MATCH (source)-[r]->(target)
-                    WHERE id(source) IN $node_ids AND id(target) IN $node_ids
-                    RETURN id(source) as source_id, id(target) as target_id, 
-                           type(r) as rel_type, r, labels(source)[0] as source_label,
-                           labels(target)[0] as target_label
-                    LIMIT 500
-                """
-                
-                # Convert node IDs for query
+                # Convert node IDs for query - use elementId() instead of id()
                 internal_node_ids = []
                 id_mapping = {}
                 for node in nodes:
                     try:
-                        # Try to get internal Neo4j ID
+                        # Get internal Neo4j element ID
                         internal_id_result = session.run(
-                            f"MATCH (n:{node.label}) WHERE n.{get_id_property(node.label)} = $value RETURN id(n) as internal_id",
+                            f"MATCH (n:{node.label}) WHERE n.{get_id_property(node.label)} = $value RETURN elementId(n) as internal_id",
                             value=node.id
                         )
                         internal_record = internal_id_result.single()
@@ -231,8 +256,18 @@ async def get_full_graph(
                             internal_id = internal_record['internal_id']
                             internal_node_ids.append(internal_id)
                             id_mapping[internal_id] = node.id
-                    except:
+                    except Exception as e:
+                        logger.warning(f"Failed to get internal ID for {node.id}: {e}")
                         continue
+                
+                edge_query = """
+                    MATCH (source)-[r]->(target)
+                    WHERE elementId(source) IN $node_ids AND elementId(target) IN $node_ids
+                    RETURN elementId(source) as source_id, elementId(target) as target_id, 
+                           type(r) as rel_type, r, labels(source)[0] as source_label,
+                           labels(target)[0] as target_label
+                    LIMIT 500
+                """
                 
                 edge_result = session.run(edge_query, node_ids=internal_node_ids)
                 edges = []
@@ -266,24 +301,13 @@ async def get_full_graph(
             for edge in edges:
                 stats['edge_types'][edge.type] = stats['edge_types'].get(edge.type, 0) + 1
             
-            return GraphData(nodes=nodes, edges=edges, stats=stats)
+            # Serialize the entire response
+            result = GraphData(nodes=nodes, edges=edges, stats=stats)
+            return serialize_neo4j_types(result.dict())
     
     except Exception as e:
-        logger.error(f"Full graph error: {e}")
+        logger.error(f"Full graph error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-
-
-def get_id_property(label: str) -> str:
-    """Get the ID property for a node label"""
-    id_properties = {
-        "Publication": "pmcid",
-        "Organism": "scientific_name",
-        "Phenomenon": "name",
-        "Platform": "name",
-        "Stressor": "name",
-        "Author": "name"
-    }
-    return id_properties.get(label, "name")
 
 
 @router.post("/search", response_model=GraphData)
@@ -313,7 +337,7 @@ async def search_graph(request: SearchGraphRequest):
             pub_query = """
                 MATCH (p:Publication)
                 WHERE p.pmcid IN $pmcids
-                RETURN p, id(p) as internal_id, labels(p) as labels
+                RETURN p, elementId(p) as internal_id, labels(p) as labels
             """
             
             pub_result = session.run(pub_query, pmcids=pmcids)
@@ -334,8 +358,8 @@ async def search_graph(request: SearchGraphRequest):
                 
                 related_query = f"""
                     MATCH (p:Publication)-[r*1..{request.max_depth}]-(related)
-                    WHERE id(p) IN $pub_ids AND labels(related)[0] <> 'Publication'
-                    RETURN DISTINCT related, id(related) as internal_id, labels(related) as labels
+                    WHERE elementId(p) IN $pub_ids AND labels(related)[0] <> 'Publication'
+                    RETURN DISTINCT related, elementId(related) as internal_id, labels(related) as labels
                     LIMIT 200
                 """
                 
@@ -358,8 +382,8 @@ async def search_graph(request: SearchGraphRequest):
                 
                 edge_query = """
                     MATCH (source)-[r]->(target)
-                    WHERE id(source) IN $node_ids AND id(target) IN $node_ids
-                    RETURN id(source) as source_id, id(target) as target_id,
+                    WHERE elementId(source) IN $node_ids AND elementId(target) IN $node_ids
+                    RETURN elementId(source) as source_id, elementId(target) as target_id,
                            type(r) as rel_type, r
                     LIMIT 1000
                 """
@@ -405,10 +429,11 @@ async def search_graph(request: SearchGraphRequest):
             for edge in edges:
                 stats['edge_types'][edge.type] = stats['edge_types'].get(edge.type, 0) + 1
             
-            return GraphData(nodes=nodes, edges=edges, stats=stats)
+            result = GraphData(nodes=nodes, edges=edges, stats=stats)
+            return serialize_neo4j_types(result.dict())
     
     except Exception as e:
-        logger.error(f"Search graph error: {e}")
+        logger.error(f"Search graph error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -485,7 +510,7 @@ async def filter_graph(request: FilterRequest):
                     internal_id_query = f"""
                         MATCH (n:{node.label})
                         WHERE n.{id_prop} = $value
-                        RETURN id(n) as internal_id
+                        RETURN elementId(n) as internal_id
                     """
                     result = session.run(internal_id_query, value=node.id)
                     record = result.single()
@@ -494,8 +519,8 @@ async def filter_graph(request: FilterRequest):
                 
                 edge_query = """
                     MATCH (source)-[r]->(target)
-                    WHERE id(source) IN $node_ids AND id(target) IN $node_ids
-                    RETURN id(source) as source_id, id(target) as target_id,
+                    WHERE elementId(source) IN $node_ids AND elementId(target) IN $node_ids
+                    RETURN elementId(source) as source_id, elementId(target) as target_id,
                            type(r) as rel_type, r
                 """
                 
@@ -543,10 +568,11 @@ async def filter_graph(request: FilterRequest):
             for edge in edges:
                 stats['edge_types'][edge.type] = stats['edge_types'].get(edge.type, 0) + 1
             
-            return GraphData(nodes=nodes, edges=edges, stats=stats)
+            result = GraphData(nodes=nodes, edges=edges, stats=stats)
+            return serialize_neo4j_types(result.dict())
     
     except Exception as e:
-        logger.error(f"Filter graph error: {e}")
+        logger.error(f"Filter graph error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -566,7 +592,7 @@ async def get_node_details(
                 node_query = f"""
                     MATCH (n:{label.value})
                     WHERE n.{id_prop} = $node_id
-                    RETURN n, labels(n) as labels, id(n) as internal_id
+                    RETURN n, labels(n) as labels, elementId(n) as internal_id
                 """
                 result = session.run(node_query, node_id=node_id)
                 record = result.single()
@@ -592,9 +618,9 @@ async def get_node_details(
                 # Get neighbors
                 neighbor_query = """
                     MATCH (center)-[r]-(neighbor)
-                    WHERE id(center) = $internal_id
+                    WHERE elementId(center) = $internal_id
                     RETURN neighbor, r, labels(neighbor) as labels,
-                           id(neighbor) as neighbor_internal_id,
+                           elementId(neighbor) as neighbor_internal_id,
                            type(r) as rel_type,
                            startNode(r) = center as is_outgoing
                     LIMIT $max_neighbors
@@ -622,12 +648,12 @@ async def get_node_details(
                     }
                     result_data['relationships'].append(format_edge(rel_data))
             
-            return result_data
+            return serialize_neo4j_types(result_data)
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Node details error: {e}")
+        logger.error(f"Node details error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -642,7 +668,7 @@ async def get_graph_stats():
         top_phenomena = analytics.top_investigated_phenomena(limit=5)
         research_gaps = analytics.research_gaps_by_system()
         
-        return {
+        result = {
             'database_stats': stats,
             'analytics': {
                 'top_organisms': top_organisms,
@@ -666,9 +692,11 @@ async def get_graph_stats():
                 }
             }
         }
+        
+        return serialize_neo4j_types(result)
     
     except Exception as e:
-        logger.error(f"Stats error: {e}")
+        logger.error(f"Stats error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Knowledge Graph Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            padding: 1rem;
+            box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            background: white;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-group h3 {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.7rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .checkbox-item input {
+            width: auto;
+            margin-right: 0.3rem;
+        }
+
+        .stats {
+            background: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .stats h4 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .graph-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            cursor: pointer;
+            stroke: #fff;
+            stroke-width: 2px;
+        }
+
+        .node:hover {
+            stroke-width: 3px;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+
+        .node-label {
+            font-size: 10px;
+            text-anchor: middle;
+            pointer-events: none;
+            fill: #333;
+        }
+
+        .controls-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NASA Knowledge Graph Visualizer</h1>
+        <p>Explore space biology research relationships</p>
+    </div>
+
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <!-- Search Controls -->
+            <div class="control-group">
+                <h3>Search Graph</h3>
+                <div class="form-group">
+                    <label>Search Query</label>
+                    <input type="text" id="searchQuery" placeholder="e.g., bone loss microgravity">
+                </div>
+                <div class="form-group">
+                    <label>Search Mode</label>
+                    <select id="searchMode">
+                        <option value="hybrid">Hybrid</option>
+                        <option value="semantic">Semantic</option>
+                        <option value="keyword">Keyword</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Max Publications</label>
+                    <input type="number" id="searchLimit" value="10" min="1" max="50">
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeRelated" checked>
+                    <label for="includeRelated">Include Related Entities</label>
+                </div>
+                <button class="btn" onclick="searchGraph()">Search</button>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="control-group">
+                <h3>Filter Graph</h3>
+                <div class="form-group">
+                    <label>Node Types</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="nodePublication" value="Publication" checked>
+                            <label for="nodePublication">Publications</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="nodeOrganism" value="Organism" checked>
+                            <label for="nodeOrganism">Organisms</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="nodePhenomenon" value="Phenomenon" checked>
+                            <label for="nodePhenomenon">Phenomena</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="nodePlatform" value="Platform" checked>
+                            <label for="nodePlatform">Platforms</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Organism Filter</label>
+                    <input type="text" id="filterOrganism" placeholder="e.g., mouse">
+                </div>
+                <div class="form-group">
+                    <label>Phenomenon Filter</label>
+                    <input type="text" id="filterPhenomenon" placeholder="e.g., bone loss">
+                </div>
+                <div class="form-group">
+                    <label>Max Nodes</label>
+                    <input type="number" id="filterLimit" value="100" min="10" max="1000">
+                </div>
+                <button class="btn" onclick="filterGraph()">Apply Filters</button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="control-group">
+                <h3>Quick Actions</h3>
+                <button class="btn" onclick="loadFullGraph()">Load Full Graph</button>
+                <button class="btn btn-secondary" onclick="centerGraph()">Center View</button>
+                <button class="btn btn-danger" onclick="clearGraph()">Clear</button>
+            </div>
+
+            <!-- Graph Statistics -->
+            <div class="stats" id="graphStats">
+                <h4>Graph Statistics</h4>
+                <div class="stat-item">
+                    <span>Nodes:</span>
+                    <span id="nodeCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Edges:</span>
+                    <span id="edgeCount">0</span>
+                </div>
+                <div id="nodeTypeStats"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <button class="controls-toggle" onclick="toggleSidebar()">☰</button>
+            
+            <div class="graph-container">
+                <svg id="graph" width="100%" height="100%"></svg>
+            </div>
+
+            <div class="legend" id="legend">
+                <h4 style="margin: 0 0 0.5rem 0;">Node Types</h4>
+                <!-- Legend will be populated dynamically -->
+            </div>
+
+            <div class="loading" id="loading">
+                <h3>Loading...</h3>
+                <p>Fetching graph data</p>
+            </div>
+
+            <div class="tooltip" id="tooltip"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:8000/api/graph';
+        const NODE_COLORS = {
+            'Publication': '#3498db',
+            'Organism': '#27ae60',
+            'Phenomenon': '#e74c3c',
+            'Finding': '#f39c12',
+            'Platform': '#9b59b6',
+            'Stressor': '#e67e22',
+            'Author': '#34495e'
+        };
+
+        // Global variables
+        let svg, simulation, nodes = [], links = [];
+        let width, height;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGraph();
+            updateLegend();
+            loadFullGraph();
+        });
+
+        function initializeGraph() {
+            svg = d3.select('#graph');
+            const container = svg.node().getBoundingClientRect();
+            width = container.width;
+            height = container.height;
+
+            svg.attr('viewBox', `0 0 ${width} ${height}`);
+
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on('zoom', (event) => {
+                    svg.select('g').attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            // Create main group for graph elements
+            svg.append('g').attr('class', 'graph-group');
+
+            // Initialize force simulation
+            simulation = d3.forceSimulation()
+                .force('link', d3.forceLink().id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(d => d.size + 5));
+        }
+
+        function updateLegend() {
+            const legend = d3.select('#legend');
+            legend.selectAll('.legend-item').remove();
+
+            Object.entries(NODE_COLORS).forEach(([type, color]) => {
+                const item = legend.append('div').attr('class', 'legend-item');
+                item.append('div')
+                    .attr('class', 'legend-color')
+                    .style('background-color', color);
+                item.append('span').text(type);
+            });
+        }
+
+        async function loadFullGraph() {
+            showLoading(true);
+            try {
+                const limit = 100;
+                const response = await fetch(`${API_BASE}/full?limit=${limit}&include_isolated=false`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderGraph(data);
+                } else {
+                    console.error('Error loading graph:', data.detail);
+                    alert('Error loading graph: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                alert('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function searchGraph() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const searchData = {
+                    query: query,
+                    search_mode: document.getElementById('searchMode').value,
+                    limit: parseInt(document.getElementById('searchLimit').value),
+                    include_related: document.getElementById('includeRelated').checked,
+                    max_depth: 2
+                };
+
+                const response = await fetch(`${API_BASE}/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(searchData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderGraph(data);
+                } else {
+                    console.error('Search error:', data.detail);
+                    alert('Search error: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                alert('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function filterGraph() {
+            showLoading(true);
+            try {
+                const nodeTypes = [];
+                ['nodePublication', 'nodeOrganism', 'nodePhenomenon', 'nodePlatform'].forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox.checked) {
+                        nodeTypes.push(checkbox.value);
+                    }
+                });
+
+                const filterData = {
+                    node_types: nodeTypes.length > 0 ? nodeTypes : null,
+                    organism: document.getElementById('filterOrganism').value.trim() || null,
+                    phenomenon: document.getElementById('filterPhenomenon').value.trim() || null,
+                    limit: parseInt(document.getElementById('filterLimit').value)
+                };
+
+                const response = await fetch(`${API_BASE}/filter`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(filterData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderGraph(data);
+                } else {
+                    console.error('Filter error:', data.detail);
+                    alert('Filter error: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                alert('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderGraph(data) {
+            nodes = data.nodes || [];
+            links = data.edges || [];
+
+            // Update statistics
+            updateStats(data.stats);
+
+            // Clear existing graph
+            const graphGroup = svg.select('.graph-group');
+            graphGroup.selectAll('*').remove();
+
+            if (nodes.length === 0) {
+                alert('No data to display');
+                return;
+            }
+
+            // Create links
+            const link = graphGroup.append('g')
+                .attr('class', 'links')
+                .selectAll('line')
+                .data(links)
+                .enter().append('line')
+                .attr('class', 'link')
+                .attr('stroke-width', d => Math.sqrt(d.weight || 1))
+                .attr('stroke', '#999')
+                .attr('stroke-opacity', 0.6);
+
+            // Create nodes
+            const node = graphGroup.append('g')
+                .attr('class', 'nodes')
+                .selectAll('circle')
+                .data(nodes)
+                .enter().append('circle')
+                .attr('class', 'node')
+                .attr('r', d => d.size || 10)
+                .attr('fill', d => d.color || NODE_COLORS[d.label] || '#95a5a6')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended))
+                .on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip)
+                .on('click', nodeClicked);
+
+            // Create labels
+            const label = graphGroup.append('g')
+                .attr('class', 'labels')
+                .selectAll('text')
+                .data(nodes)
+                .enter().append('text')
+                .attr('class', 'node-label')
+                .text(d => {
+                    // Show title for publications, name for others
+                    if (d.label === 'Publication') {
+                        return d.properties.title ? 
+                            (d.properties.title.length > 30 ? 
+                                d.properties.title.substring(0, 30) + '...' : 
+                                d.properties.title) : d.id;
+                    }
+                    return d.properties.name || d.properties.scientific_name || d.id;
+                })
+                .attr('dy', d => (d.size || 10) + 15);
+
+            // Update and restart simulation
+            simulation.nodes(nodes);
+            simulation.force('link').links(links);
+            simulation.alpha(1).restart();
+
+            // Simulation tick function
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y);
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function showTooltip(event, d) {
+            const tooltip = d3.select('#tooltip');
+            
+            let content = `<strong>${d.label}: ${d.id}</strong><br>`;
+            
+            if (d.properties.title) {
+                content += `Title: ${d.properties.title}<br>`;
+            }
+            if (d.properties.name) {
+                content += `Name: ${d.properties.name}<br>`;
+            }
+            if (d.properties.scientific_name) {
+                content += `Scientific Name: ${d.properties.scientific_name}<br>`;
+            }
+            if (d.properties.journal) {
+                content += `Journal: ${d.properties.journal}<br>`;
+            }
+            if (d.properties.search_score) {
+                content += `Relevance: ${d.properties.search_score.toFixed(3)}<br>`;
+            }
+
+            tooltip
+                .style('opacity', 1)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 10) + 'px')
+                .html(content);
+        }
+
+        function hideTooltip() {
+            d3.select('#tooltip').style('opacity', 0);
+        }
+
+        function nodeClicked(event, d) {
+            console.log('Node clicked:', d);
+            // Here you could open a detail view, navigate to the publication, etc.
+        }
+
+        function updateStats(stats) {
+            document.getElementById('nodeCount').textContent = stats.total_nodes || 0;
+            document.getElementById('edgeCount').textContent = stats.total_edges || 0;
+
+            const nodeTypeStats = document.getElementById('nodeTypeStats');
+            nodeTypeStats.innerHTML = '';
+
+            if (stats.node_types) {
+                Object.entries(stats.node_types).forEach(([type, count]) => {
+                    const item = document.createElement('div');
+                    item.className = 'stat-item';
+                    item.innerHTML = `<span>${type}:</span><span>${count}</span>`;
+                    nodeTypeStats.appendChild(item);
+                });
+            }
+        }
+
+        function centerGraph() {
+            const svg = d3.select('#graph');
+            svg.transition().duration(750).call(
+                d3.zoom().transform,
+                d3.zoomIdentity.translate(width / 2, height / 2).scale(1)
+            );
+        }
+
+        function clearGraph() {
+            svg.select('.graph-group').selectAll('*').remove();
+            nodes = [];
+            links = [];
+            updateStats({ total_nodes: 0, total_edges: 0, node_types: {} });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.display = sidebar.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const container = svg.node().getBoundingClientRect();
+            width = container.width;
+            height = container.height;
+            svg.attr('viewBox', `0 0 ${width} ${height}`);
+            simulation.force('center', d3.forceCenter(width / 2, height / 2));
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'f':
+                        event.preventDefault();
+                        document.getElementById('searchQuery').focus();
+                        break;
+                    case 'r':
+                        event.preventDefault();
+                        loadFullGraph();
+                        break;
+                    case 'c':
+                        event.preventDefault();
+                        centerGraph();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

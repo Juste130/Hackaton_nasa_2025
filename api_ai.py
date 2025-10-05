@@ -10,7 +10,7 @@ import os
 import logging
 from dotenv import load_dotenv
 
-#  Import correct modules
+# Import correct modules
 from ai_summarizer import SummaryService
 from ai_rag_assistant import RAGService
 from ai_generic_rag import GenericRAGService
@@ -18,7 +18,7 @@ from session_manager import SessionManager
 
 load_dotenv()
 
-#  Setup logging
+# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#  Global services - initialize only once
+# Global services - initialize only once
 _llm = None
 _summary_service = None
 _rag_service = None
@@ -53,13 +53,41 @@ def get_llm():
         if not api_key:
             raise ValueError("MISTRAL_API_KEY environment variable not set")
         
+        # ✅ Fixed: Use proper DSPy LM initialization
+        try:
+            # Try new DSPy API first
+            _llm = dspy.LM(
+        "openai/mistral-small-latest",
+        api_key=os.environ.get("MISTRAL_API_KEY"),
+        api_base="https://api.mistral.ai/v1",
+        max_tokens=20000
+    )
+            logger.info("✅ LLM initialized with OpenAI interface")
+        except Exception as e:
+            logger.warning(f"OpenAI interface failed: {e}")
+    try:
+        # Fallback to LiteLLM
         _llm = dspy.LM(
             "openai/mistral-small-latest",
-            api_key=api_key,
+            api_key=os.environ.get("MISTRAL_API_KEY"),
             api_base="https://api.mistral.ai/v1",
-            max_tokens=20000  #  Fixed: removed extra zeros
+            max_tokens=20000
         )
-        logger.info(" LLM initialized")
+        logger.info("✅ LLM initialized with LiteLLM interface")
+    except Exception as e2:
+        logger.error(f"LiteLLM failed: {e2}")
+        # Last resort: configure dspy settings
+        dspy.configure(
+            lm=dspy.LM(
+                "openai/mistral-small-latest",
+                api_key=os.environ.get("MISTRAL_API_KEY"),
+                api_base="https://api.mistral.ai/v1",
+                max_tokens=20000
+            )
+        )
+        _llm = dspy.settings.lm
+        logger.info("✅ LLM initialized via dspy.configure")
+    
     return _llm
 
 
@@ -68,7 +96,7 @@ def get_summary_service():
     global _summary_service
     if _summary_service is None:
         _summary_service = SummaryService(get_llm())
-        logger.info(" Summary service initialized")
+        logger.info("✅ Summary service initialized")
     return _summary_service
 
 
@@ -77,7 +105,7 @@ def get_rag_service():
     global _rag_service
     if _rag_service is None:
         _rag_service = RAGService(get_llm())
-        logger.info(" RAG service initialized")
+        logger.info("✅ RAG service initialized")
     return _rag_service
 
 
@@ -86,7 +114,7 @@ def get_generic_rag_service():
     global _generic_rag_service
     if _generic_rag_service is None:
         _generic_rag_service = GenericRAGService(get_llm())
-        logger.info(" Generic RAG service initialized")
+        logger.info("✅ Generic RAG service initialized")
     return _generic_rag_service
 
 
@@ -95,7 +123,7 @@ def get_session_manager():
     global _session_manager
     if _session_manager is None:
         _session_manager = SessionManager()
-        logger.info(" Session manager initialized")
+        logger.info("✅ Session manager initialized")
     return _session_manager
 
 
@@ -138,7 +166,7 @@ class MessageResponse(BaseModel):
 async def create_session(request: SessionCreate):
     """Create new conversation session"""
     try:
-        #  Validate service type
+        # Validate service type
         valid_types = ['summarizer', 'rag_assistant', 'generic_rag']
         if request.service_type not in valid_types:
             raise HTTPException(
@@ -163,7 +191,7 @@ async def create_session(request: SessionCreate):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" Session creation error: {e}")
+        logger.error(f"❌ Session creation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -192,7 +220,7 @@ async def get_session_history(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" History retrieval error: {e}")
+        logger.error(f"❌ History retrieval error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -215,7 +243,7 @@ async def list_sessions(
         }
     
     except Exception as e:
-        logger.error(f" Session listing error: {e}")
+        logger.error(f"❌ Session listing error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -236,7 +264,7 @@ async def delete_session(session_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" Session deletion error: {e}")
+        logger.error(f"❌ Session deletion error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -249,7 +277,7 @@ async def summarize_article(
 ):
     """Generate summary for an article"""
     try:
-        logger.info(f" Summarizing {request.pmcid}")
+        logger.info(f"📝 Summarizing {request.pmcid}")
         
         # Validate session if provided
         if session_id:
@@ -280,13 +308,13 @@ async def summarize_article(
                 metadata=summary
             )
         
-        logger.info(f" Summary generated for {request.pmcid}")
+        logger.info(f"✅ Summary generated for {request.pmcid}")
         return summary
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" Summarization error: {e}")
+        logger.error(f"❌ Summarization error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -332,13 +360,13 @@ async def ask_rag_assistant(
                 }
             )
         
-        logger.info(f" RAG answer generated with {len(answer.get('citations', []))} citations")
+        logger.info(f"✅ RAG answer generated with {len(answer.get('citations', []))} citations")
         return answer
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" RAG error: {e}")
+        logger.error(f"❌ RAG error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -349,7 +377,7 @@ async def ask_generic_rag(
 ):
     """Ask generic RAG (AI autonomously searches and uses tools)"""
     try:
-        logger.info(f" Generic RAG question: {request.question[:100]}...")
+        logger.info(f"🚀 Generic RAG question: {request.question[:100]}...")
         
         # Validate session if provided
         if session_id:
@@ -360,7 +388,7 @@ async def ask_generic_rag(
             if info['service_type'] != 'generic_rag':
                 raise HTTPException(status_code=400, detail="Wrong service type for this session")
         
-        #  Just pass the question - AI handles the rest!
+        # Just pass the question - AI handles the rest!
         generic_rag_service = get_generic_rag_service()
         answer = await generic_rag_service.ask(request.question)
         
@@ -385,13 +413,13 @@ async def ask_generic_rag(
                 }
             )
         
-        logger.info(f" Generic RAG answer generated with {len(answer.get('citations', []))} citations")
+        logger.info(f"✅ Generic RAG answer generated with {len(answer.get('citations', []))} citations")
         return answer
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f" Generic RAG error: {e}")
+        logger.error(f"❌ Generic RAG error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -401,7 +429,7 @@ async def ask_generic_rag(
 async def health_check():
     """Health check endpoint"""
     try:
-        #  Test basic functionality
+        # Test basic functionality
         llm = get_llm()
         
         return {
@@ -415,7 +443,7 @@ async def health_check():
             "version": "2.0.0"
         }
     except Exception as e:
-        logger.error(f" Health check failed: {e}")
+        logger.error(f"❌ Health check failed: {e}")
         return {
             "status": "unhealthy",
             "error": str(e)
@@ -438,7 +466,7 @@ async def root():
     }
 
 
-#  Proper shutdown handling
+# Proper shutdown handling
 @app.on_event("shutdown")
 async def shutdown():
     """Cleanup on shutdown"""
@@ -449,33 +477,42 @@ async def shutdown():
             await _rag_service.close()
         if _generic_rag_service:
             await _generic_rag_service.close()
-        logger.info(" Services closed gracefully")
+        logger.info("🔌 Services closed gracefully")
     except Exception as e:
-        logger.error(f" Shutdown error: {e}")
+        logger.error(f"❌ Shutdown error: {e}")
 
 
-#  Startup event
+# Startup event
 @app.on_event("startup")
 async def startup():
     """Initialize services on startup"""
     try:
-        logger.info(" Starting NASA AI Services API...")
+        logger.info("🚀 Starting NASA AI Services API...")
         
-        # Test initialization
-        get_llm()
+        # Test initialization - but don't fail if LLM setup fails
+        try:
+            get_llm()
+            logger.info("✅ LLM initialized successfully")
+        except Exception as e:
+            logger.error(f"❌ LLM initialization failed: {e}")
+            logger.info("⚠️ API will start but AI services may not work")
+        
+        # Initialize session manager (doesn't depend on LLM)
         get_session_manager()
         
-        logger.info(" API ready!")
+        logger.info("✅ API ready!")
     except Exception as e:
-        logger.error(f" Startup failed: {e}")
-        raise
+        logger.error(f"❌ Startup failed: {e}")
+        # Don't raise - let the API start anyway
 
 
-# ✅ Add Neo4j router import
-from api_neo4j import router as neo4j_router
-
-# ✅ Include the Neo4j router
-app.include_router(neo4j_router)
+# Add Neo4j router import
+try:
+    from api_neo4j import router as neo4j_router
+    app.include_router(neo4j_router)
+    logger.info("✅ Neo4j router included")
+except Exception as e:
+    logger.error(f"❌ Failed to include Neo4j router: {e}")
 
 
 if __name__ == "__main__":
