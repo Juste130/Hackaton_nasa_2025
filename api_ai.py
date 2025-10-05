@@ -471,6 +471,13 @@ async def startup():
         raise
 
 
+# ✅ Add Neo4j router import
+from api_neo4j import router as neo4j_router
+
+# ✅ Include the Neo4j router
+app.include_router(neo4j_router)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
