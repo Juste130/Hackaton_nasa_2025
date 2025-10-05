@@ -28,6 +28,7 @@ const Explorer = () => {
   const [selectedPublications, setSelectedPublications] = useState([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [loadingPublications, setLoadingPublications] = useState(true);
 
   // States pour le graphe
   const [graphData, setGraphData] = useState(null);
@@ -39,6 +40,7 @@ const Explorer = () => {
     const controller = new AbortController();
     const fetchData = async () => {
       try {
+        setLoadingPublications(true);
         const baseUrl =
           process.env.REACT_APP_API_URL || "http://localhost:3001";
         const res = await fetch(`${baseUrl}/publications`, {
@@ -49,6 +51,7 @@ const Explorer = () => {
 
         const mapped = (apiData || []).map((p) => ({
           id: p.id,
+          pmcid: p.pmcid || "",
           title: p.title || "",
           date: p.publication_date
             ? new Date(p.publication_date).toISOString()
@@ -66,6 +69,10 @@ const Explorer = () => {
             : [],
           journal: p.journal || "",
           abstract: p.abstract || "",
+          mesh_terms: p.publication_mesh_terms || [],
+          keywords: p.publication_keywords || [],
+          entities: p.publication_entities || [],
+          text_sections: p.text_sections || [],
           organisms: [],
           phenomena: [],
           systems: [],
@@ -95,6 +102,8 @@ const Explorer = () => {
         if (e.name !== "AbortError") {
           console.error("Failed to fetch publications:", e);
         }
+      } finally {
+        setLoadingPublications(false);
       }
     };
     fetchData();
@@ -103,7 +112,7 @@ const Explorer = () => {
 
   // Filtrage pour Cards et Table uniquement
   useEffect(() => {
-    if (activeView === "graph") return; // Pas de filtrage automatique pour le graphe
+    if (activeView === "graph") return;
 
     let results = publications;
 
@@ -270,6 +279,8 @@ const Explorer = () => {
             ? `${graphData?.stats?.total_nodes || 0} nodes • ${
                 graphData?.stats?.total_edges || 0
               } edges`
+            : loadingPublications
+            ? "Loading publications..."
             : `${filteredPublications.length} publications found • ${selectedPublications.length} selected`}
         </p>
       </div>
@@ -464,29 +475,40 @@ const Explorer = () => {
           <div className="results-area">
             {activeView === "cards" && (
               <div className="cards-view">
-                <div className="results-grid">
-                  {visiblePublications.map((publication) => (
-                    <PublicationCard
-                      key={publication.id}
-                      publication={publication}
-                      isSelected={selectedPublications.includes(publication.id)}
-                      onSelect={() => handlePublicationSelect(publication.id)}
-                      onClickForSummary={() => {
-                        setSelectedPublications([publication.id]);
-                        setShowAIPanel(true);
-                      }}
-                    />
-                  ))}
-                </div>
-                {visibleCount < filteredPublications.length && (
-                  <div className="load-more">
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => setVisibleCount((c) => c + 6)}
-                    >
-                      Voir plus
-                    </button>
-                  </div>
+                {loadingPublications ? (
+                  <div className="loading">Loading publications…</div>
+                ) : (
+                  <>
+                    <div className="results-grid">
+                      {visiblePublications.map((publication) => (
+                        <PublicationCard
+                          key={publication.id}
+                          publication={publication}
+                          isSelected={selectedPublications.includes(
+                            publication.id
+                          )}
+                          onSelect={() =>
+                            handlePublicationSelect(publication.id)
+                          }
+                          onClickForSummary={() => {
+                            setSelectedPublications([publication.id]);
+                            setShowAIPanel(true);
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {visibleCount < filteredPublications.length && (
+                      <div className="load-more">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => setVisibleCount((c) => c + 6)}
+                          disabled={loadingPublications}
+                        >
+                          Voir plus
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}

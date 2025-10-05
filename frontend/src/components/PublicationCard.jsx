@@ -1,55 +1,73 @@
-import React, { useState } from 'react';
-import './PublicationCard.css';
+import React, { useState } from "react";
+import "./PublicationCard.css";
 
-const PublicationCard = ({ publication, isSelected, onSelect, onClickForSummary }) => {
+const PublicationCard = ({
+  publication,
+  isSelected,
+  onSelect,
+  onClickForSummary,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className={`publication-card fade-in ${isSelected ? 'selected' : ''}`}>
+    <div className={`publication-card fade-in ${isSelected ? "selected" : ""}`}>
       <div className="card-header">
         <h3 className="publication-title">{publication.title}</h3>
         <div className="publication-meta">
-          <span className="date">{new Date(publication.date).toLocaleDateString()}</span>
-          <span className="citations">📊 {publication.citations} citations</span>
+          <span className="date">
+            {new Date(publication.date).toLocaleDateString()}
+          </span>
+          <span className="citations">
+            📊 {publication.citations} citations
+          </span>
         </div>
       </div>
 
-      <div className="authors">
-        {publication.authors.join(', ')}
-      </div>
+      <div className="authors">{publication.authors.join(", ")}</div>
 
       <p className="journal">{publication.journal}</p>
 
       <div className="abstract">
         <p>
-          {isExpanded 
-            ? publication.abstract 
-            : `${publication.abstract.substring(0, 200)}...`
-          }
+          {isExpanded
+            ? publication.abstract
+            : `${publication.abstract.substring(0, 200)}...`}
         </p>
-        <button 
+        <button
           className="expand-btn"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {isExpanded ? 'See less' : 'See more'}
+          {isExpanded ? "See less" : "See more"}
         </button>
       </div>
 
       <div className="tags">
-        {publication.organisms.map(org => (
-          <span key={org} className="tag organism">🧬 {org}</span>
+        {publication.mesh_terms.map((org) => console.log(org))}
+        {publication.phenomena.map((phen) => (
+          <span key={phen} className="tag phenomenon">
+            ⚡ {phen}
+          </span>
         ))}
-        {publication.phenomena.map(phen => (
-          <span key={phen} className="tag phenomenon">⚡ {phen}</span>
-        ))}
-        {publication.systems.map(sys => (
-          <span key={sys} className="tag system">🔬 {sys}</span>
+        {publication.systems.map((sys) => (
+          <span key={sys} className="tag system">
+            🔬 {sys}
+          </span>
         ))}
         <span className="tag mission">🚀 {publication.mission}</span>
       </div>
 
       <div className="card-actions">
-        <button className="action-btn">📖 View NASA Publication</button>
+        <button
+          className="action-btn"
+          onClick={() =>
+            window.open(
+              `https://pmc.ncbi.nlm.nih.gov/articles/${publication.pmcid}`,
+              "_blank"
+            )
+          }
+        >
+          📖 View NASA Publication
+        </button>
         <button className="action-btn" onClick={onClickForSummary}>
           🤖 Research Summary
         </button>
