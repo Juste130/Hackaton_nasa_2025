@@ -1,0 +1,301 @@
+/* src/components/GraphVisualization.css */
+.graph-visualization {
+  display: flex;
+  height: 100vh;
+  background: #f5f5f5;
+}
+
+.graph-sidebar {
+  flex-shrink: 0;
+}
+
+.graph-main {
+  flex: 1;
+  position: relative;
+  background: white;
+}
+
+.graph-container {
+  width: 100%;
+  height: 100%;
+  flex: 1; /* Prend tout l'espace disponible */
+  position: relative;
+  overflow: hidden;
+}
+
+.graph-visualization-content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: white;
+  overflow: hidden; /* Important pour éviter le débordement */
+  display: flex;
+  flex-direction: column;
+}
+
+.error-message {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e74c3c;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.graph-error-message {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  max-width: 90%;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.graph-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.graph-loading-spinner {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 90%;
+}
+
+.graph-loading-spinner h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.graph-loading-spinner p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.graph-legend {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.95);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-size: 0.8rem;
+  backdrop-filter: blur(5px);
+  z-index: 100;
+  max-width: 200px;
+}
+
+.graph-legend h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.graph-toolbar {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 100;
+}
+
+.graph-toolbar button {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-toolbar button:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* D3 specific styles */
+.graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.graph-container .node {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.graph-container .link {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.graph-container .node-label {
+  font-family: sans-serif;
+  font-size: 10px;
+  fill: #333;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .graph-legend {
+    top: 10px;
+    right: 10px;
+    padding: 0.8rem;
+    font-size: 0.75rem;
+    max-width: 180px;
+  }
+  
+  .graph-toolbar {
+    bottom: 15px;
+    left: 15px;
+    gap: 0.4rem;
+  }
+  
+  .graph-toolbar button {
+    padding: 0.6rem;
+    font-size: 1.1rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .graph-legend {
+    top: 5px;
+    right: 5px;
+    padding: 0.6rem;
+    font-size: 0.7rem;
+    max-width: 150px;
+  }
+  
+  .graph-legend h4 {
+    font-size: 0.8rem;
+  }
+  
+  .legend-color {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .graph-toolbar {
+    bottom: 10px;
+    left: 10px;
+    gap: 0.3rem;
+  }
+  
+  .graph-toolbar button {
+    padding: 0.5rem;
+    font-size: 1rem;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .graph-loading-spinner {
+    padding: 1.5rem;
+  }
+  
+  .graph-loading-spinner h3 {
+    font-size: 1.1rem;
+  }
+  
+  .graph-error-message {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .graph-legend {
+    position: static;
+    margin: 0.5rem;
+    width: calc(100% - 1rem);
+    max-width: none;
+  }
+  
+  .graph-toolbar {
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    justify-content: center;
+  }
+  
+  .graph-toolbar button {
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Ajuster la hauteur du container sur très petit écran */
+  .graph-container {
+    height: calc(100% - 60px); /* Laisser de la place pour la légende */
+  }
+}
