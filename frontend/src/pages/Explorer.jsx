@@ -1,83 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { publications, filters } from '../data/mockData';
-import PublicationCard from '../components/PublicationCard';
-import KnowledgeGraph from '../components/KnowledgeGraph';
-import DataTable from '../components/DataTable';
-import AISummaryPanel from '../components/AISummaryPanel';
-import GraphControls from '../components/GraphControls';
-import graphApiService from '../services/graphApi';
-import './Explorer.css';
+import React, { useEffect, useState } from "react";
+import AISummaryPanel from "../components/AISummaryPanel";
+import DataTable from "../components/DataTable";
+import GraphControls from "../components/GraphControls";
+import KnowledgeGraph from "../components/KnowledgeGraph";
+import PublicationCard from "../components/PublicationCard";
+import { filters } from "../data/mockData";
+import graphApiService from "../services/graphApi";
+import "./Explorer.css";
 
 const Explorer = () => {
-  const [activeView, setActiveView] = useState('cards'); // 'cards', 'graph', 'table'
-  const [filteredPublications, setFilteredPublications] = useState(publications);
-  
+  const [activeView, setActiveView] = useState("cards"); // 'cards', 'graph', 'table'
+  const [publications, setPublications] = useState([]);
+  const [filteredPublications, setFilteredPublications] = useState([]);
+
   // States pour les filtres classiques (Cards/Table)
-  const years = publications.map(pub => new Date(pub.date).getFullYear());
-  const minYear = Math.min(...years);
-  const maxYear = Math.max(...years);
   const currentYear = new Date().getFullYear();
+  const [minYear, setMinYear] = useState(currentYear);
+  const [maxYear, setMaxYear] = useState(currentYear);
   const [selectedFilters, setSelectedFilters] = useState({
     organisms: [],
     phenomena: [],
     systems: [],
     missions: [],
-    yearRange: [minYear, currentYear]
+    yearRange: [currentYear, currentYear],
   });
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedPublications, setSelectedPublications] = useState([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
 
   // States pour le graphe
   const [graphData, setGraphData] = useState(null);
   const [graphLoading, setGraphLoading] = useState(false);
   const [graphError, setGraphError] = useState(null);
 
+  // Chargement initial depuis l'API backend et mapping vers le format UI
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchData = async () => {
+      try {
+        const baseUrl =
+          process.env.REACT_APP_API_URL || "http://localhost:3001";
+        const res = await fetch(`${baseUrl}/publications`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        const apiData = await res.json();
+
+        const mapped = (apiData || []).map((p) => ({
+          id: p.id,
+          title: p.title || "",
+          date: p.publication_date
+            ? new Date(p.publication_date).toISOString()
+            : p.created_at || new Date().toISOString(),
+          citations: 0,
+          authors: Array.isArray(p.publication_authors)
+            ? p.publication_authors.map((pa) => {
+                const first = pa?.authors?.firstname
+                  ? `${pa.authors.firstname} `
+                  : "";
+                const last = pa?.authors?.lastname || "";
+                const full = `${first}${last}`.trim();
+                return full || "Unknown";
+              })
+            : [],
+          journal: p.journal || "",
+          abstract: p.abstract || "",
+          organisms: [],
+          phenomena: [],
+          systems: [],
+          mission: "",
+        }));
+
+        setPublications(mapped);
+        setFilteredPublications(mapped);
+
+        if (mapped.length > 0) {
+          const years = mapped
+            .map((pub) => new Date(pub.date).getFullYear())
+            .filter((y) => !Number.isNaN(y));
+          const computedMin = Math.min(...years);
+          const computedMax = Math.max(...years);
+          setMinYear(Number.isFinite(computedMin) ? computedMin : currentYear);
+          setMaxYear(Number.isFinite(computedMax) ? computedMax : currentYear);
+          setSelectedFilters((prev) => ({
+            ...prev,
+            yearRange: [
+              Number.isFinite(computedMin) ? computedMin : currentYear,
+              Number.isFinite(computedMax) ? computedMax : currentYear,
+            ],
+          }));
+        }
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          console.error("Failed to fetch publications:", e);
+        }
+      }
+    };
+    fetchData();
+    return () => controller.abort();
+  }, []);
+
   // Filtrage pour Cards et Table uniquement
   useEffect(() => {
-    if (activeView === 'graph') return; // Pas de filtrage automatique pour le graphe
-    
+    if (activeView === "graph") return; // Pas de filtrage automatique pour le graphe
+
     let results = publications;
 
     // Text search filter
     if (searchQuery) {
-      results = results.filter(pub => 
-        pub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pub.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pub.authors.some(author =>
-          author.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        pub.journal.toLowerCase().includes(searchQuery.toLowerCase())
+      results = results.filter(
+        (pub) =>
+          pub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          pub.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          pub.authors.some((author) =>
+            author.toLowerCase().includes(searchQuery.toLowerCase())
+          ) ||
+          pub.journal.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Category filters
-    Object.keys(selectedFilters).forEach(key => {
-      if (selectedFilters[key].length > 0 && key !== 'yearRange') {
-        results = results.filter(pub => 
-          selectedFilters[key].some(filter => 
-            pub[key]?.includes(filter)
-          )
+    Object.keys(selectedFilters).forEach((key) => {
+      if (selectedFilters[key].length > 0 && key !== "yearRange") {
+        results = results.filter((pub) =>
+          selectedFilters[key].some((filter) => pub[key]?.includes(filter))
         );
       }
     });
 
     // Year range filter
-    results = results.filter(pub => {
+    results = results.filter((pub) => {
       const pubYear = new Date(pub.date).getFullYear();
-      return pubYear >= selectedFilters.yearRange[0] && 
-             pubYear <= selectedFilters.yearRange[1];
+      return (
+        pubYear >= selectedFilters.yearRange[0] &&
+        pubYear <= selectedFilters.yearRange[1]
+      );
     });
 
     setFilteredPublications(results);
+    setVisibleCount(6);
   }, [selectedFilters, searchQuery, activeView]);
 
   // Handlers pour filtres classiques
   const handleFilterToggle = (category, value) => {
-    setSelectedFilters(prev => {
+    setSelectedFilters((prev) => {
       const newFilters = { ...prev };
       if (newFilters[category].includes(value)) {
-        newFilters[category] = newFilters[category].filter(item => item !== value);
+        newFilters[category] = newFilters[category].filter(
+          (item) => item !== value
+        );
       } else {
         newFilters[category] = [...newFilters[category], value];
       }
@@ -86,16 +158,16 @@ const Explorer = () => {
   };
 
   const handleYearRangeChange = (newRange) => {
-    setSelectedFilters(prev => ({
+    setSelectedFilters((prev) => ({
       ...prev,
-      yearRange: newRange
+      yearRange: newRange,
     }));
   };
 
   const handlePublicationSelect = (pubId) => {
-    setSelectedPublications(prev => {
+    setSelectedPublications((prev) => {
       if (prev.includes(pubId)) {
-        return prev.filter(id => id !== pubId);
+        return prev.filter((id) => id !== pubId);
       } else {
         return [...prev, pubId];
       }
@@ -103,10 +175,19 @@ const Explorer = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedPublications.length === filteredPublications.length) {
-      setSelectedPublications([]);
+    const visible = filteredPublications.slice(0, visibleCount);
+    const visibleIds = visible.map((pub) => pub.id);
+    const allVisibleSelected = visibleIds.every((id) =>
+      selectedPublications.includes(id)
+    );
+    if (allVisibleSelected) {
+      setSelectedPublications((prev) =>
+        prev.filter((id) => !visibleIds.includes(id))
+      );
     } else {
-      setSelectedPublications(filteredPublications.map(pub => pub.id));
+      setSelectedPublications((prev) =>
+        Array.from(new Set([...prev, ...visibleIds]))
+      );
     }
   };
 
@@ -116,9 +197,9 @@ const Explorer = () => {
       phenomena: [],
       systems: [],
       missions: [],
-      yearRange: [minYear, currentYear]
+      yearRange: [minYear, currentYear],
     });
-    setSearchQuery('');
+    setSearchQuery("");
     setSelectedPublications([]);
   };
 
@@ -131,7 +212,7 @@ const Explorer = () => {
       setGraphData(data);
     } catch (err) {
       setGraphError(err.message);
-      console.error('Graph search error:', err);
+      console.error("Graph search error:", err);
     } finally {
       setGraphLoading(false);
     }
@@ -145,7 +226,7 @@ const Explorer = () => {
       setGraphData(data);
     } catch (err) {
       setGraphError(err.message);
-      console.error('Graph filter error:', err);
+      console.error("Graph filter error:", err);
     } finally {
       setGraphLoading(false);
     }
@@ -159,7 +240,7 @@ const Explorer = () => {
       setGraphData(data);
     } catch (err) {
       setGraphError(err.message);
-      console.error('Graph load error:', err);
+      console.error("Graph load error:", err);
     } finally {
       setGraphLoading(false);
     }
@@ -172,29 +253,35 @@ const Explorer = () => {
 
   const handleGraphCenter = () => {
     // Cette fonction sera appelée depuis KnowledgeGraph
-    console.log('Center graph view');
+    console.log("Center graph view");
   };
 
-  const selectedPubData = publications.filter(pub => 
+  const selectedPubData = publications.filter((pub) =>
     selectedPublications.includes(pub.id)
   );
+  const visiblePublications = filteredPublications.slice(0, visibleCount);
 
   return (
     <div className="explorer">
       <div className="explorer-header fade-in">
         <h1>Explore Knowledge Base</h1>
         <p>
-          {activeView === 'graph' 
-            ? `${graphData?.stats?.total_nodes || 0} nodes • ${graphData?.stats?.total_edges || 0} edges`
-            : `${filteredPublications.length} publications found • ${selectedPublications.length} selected`
-          }
+          {activeView === "graph"
+            ? `${graphData?.stats?.total_nodes || 0} nodes • ${
+                graphData?.stats?.total_edges || 0
+              } edges`
+            : `${filteredPublications.length} publications found • ${selectedPublications.length} selected`}
         </p>
       </div>
 
-      <div className={`explorer-content ${activeView === 'graph' ? 'graph-mode' : ''}`}>
+      <div
+        className={`explorer-content ${
+          activeView === "graph" ? "graph-mode" : ""
+        }`}
+      >
         {/* Sidebar conditionnel */}
         <aside className="filters-sidebar slide-in">
-          {activeView === 'graph' ? (
+          {activeView === "graph" ? (
             // Contrôles du graphe
             <GraphControls
               onSearch={handleGraphSearch}
@@ -232,14 +319,20 @@ const Explorer = () => {
                       value={selectedFilters.yearRange[0]}
                       onChange={(e) => {
                         let newStart = parseInt(e.target.value) || minYear;
-                        newStart = Math.max(minYear, Math.min(newStart, selectedFilters.yearRange[1]));
-                        handleYearRangeChange([newStart, selectedFilters.yearRange[1]]);
+                        newStart = Math.max(
+                          minYear,
+                          Math.min(newStart, selectedFilters.yearRange[1])
+                        );
+                        handleYearRangeChange([
+                          newStart,
+                          selectedFilters.yearRange[1],
+                        ]);
                       }}
                       className="year-input"
                       placeholder={minYear.toString()}
                     />
                   </div>
-                  
+
                   <div className="year-input-group">
                     <label htmlFor="year-to">To:</label>
                     <input
@@ -250,8 +343,14 @@ const Explorer = () => {
                       value={selectedFilters.yearRange[1]}
                       onChange={(e) => {
                         let newEnd = parseInt(e.target.value) || maxYear;
-                        newEnd = Math.max(selectedFilters.yearRange[0], Math.min(newEnd, maxYear));
-                        handleYearRangeChange([selectedFilters.yearRange[0], newEnd]);
+                        newEnd = Math.max(
+                          selectedFilters.yearRange[0],
+                          Math.min(newEnd, maxYear)
+                        );
+                        handleYearRangeChange([
+                          selectedFilters.yearRange[0],
+                          newEnd,
+                        ]);
                       }}
                       className="year-input"
                       placeholder={maxYear.toString()}
@@ -263,9 +362,11 @@ const Explorer = () => {
               {/* Dynamic Filters */}
               {Object.entries(filters).map(([category, options]) => (
                 <div key={category} className="filter-group">
-                  <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                  <h3>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </h3>
                   <div className="filter-options">
-                    {options.map(option => (
+                    {options.map((option) => (
                       <label key={option} className="filter-option">
                         <input
                           type="checkbox"
@@ -274,7 +375,13 @@ const Explorer = () => {
                         />
                         <span>{option}</span>
                         <span className="filter-count">
-                          ({publications.filter(pub => pub[category]?.includes(option)).length})
+                          (
+                          {
+                            publications.filter((pub) =>
+                              pub[category]?.includes(option)
+                            ).length
+                          }
+                          )
                         </span>
                       </label>
                     ))}
@@ -294,39 +401,47 @@ const Explorer = () => {
           {/* View Toggles */}
           <div className="view-controls">
             <div className="view-toggles">
-              <button 
-                className={`view-toggle ${activeView === 'cards' ? 'active' : ''}`}
-                onClick={() => setActiveView('cards')}
+              <button
+                className={`view-toggle ${
+                  activeView === "cards" ? "active" : ""
+                }`}
+                onClick={() => setActiveView("cards")}
               >
                 📄 Cards
               </button>
-              <button 
-                className={`view-toggle ${activeView === 'graph' ? 'active' : ''}`}
-                onClick={() => setActiveView('graph')}
+              <button
+                className={`view-toggle ${
+                  activeView === "graph" ? "active" : ""
+                }`}
+                onClick={() => setActiveView("graph")}
               >
                 🔗 Graph
               </button>
-              <button 
-                className={`view-toggle ${activeView === 'table' ? 'active' : ''}`}
-                onClick={() => setActiveView('table')}
+              <button
+                className={`view-toggle ${
+                  activeView === "table" ? "active" : ""
+                }`}
+                onClick={() => setActiveView("table")}
               >
                 📊 Table
               </button>
             </div>
 
             {/* Selection Controls - seulement pour Cards et Table */}
-            {activeView !== 'graph' && filteredPublications.length > 0 && (
+            {activeView !== "graph" && filteredPublications.length > 0 && (
               <div className="selection-controls">
                 <label className="select-all-checkbox">
                   <input
                     type="checkbox"
-                    checked={selectedPublications.length === filteredPublications.length}
+                    checked={visiblePublications
+                      .map((p) => p.id)
+                      .every((id) => selectedPublications.includes(id))}
                     onChange={handleSelectAll}
                   />
-                  Select All ({filteredPublications.length})
+                  Select All ({visiblePublications.length})
                 </label>
                 {selectedPublications.length > 0 && (
-                  <button 
+                  <button
                     className="ai-summary-btn"
                     onClick={() => setShowAIPanel(true)}
                   >
@@ -337,7 +452,7 @@ const Explorer = () => {
             )}
 
             {/* Graph Error Display */}
-            {activeView === 'graph' && graphError && (
+            {activeView === "graph" && graphError && (
               <div className="graph-error">
                 <span>⚠️ {graphError}</span>
                 <button onClick={() => setGraphError(null)}>✕</button>
@@ -347,12 +462,12 @@ const Explorer = () => {
 
           {/* Results Area */}
           <div className="results-area">
-            {activeView === 'cards' && (
+            {activeView === "cards" && (
               <div className="cards-view">
                 <div className="results-grid">
-                  {filteredPublications.map(publication => (
-                    <PublicationCard 
-                      key={publication.id} 
+                  {visiblePublications.map((publication) => (
+                    <PublicationCard
+                      key={publication.id}
                       publication={publication}
                       isSelected={selectedPublications.includes(publication.id)}
                       onSelect={() => handlePublicationSelect(publication.id)}
@@ -363,23 +478,33 @@ const Explorer = () => {
                     />
                   ))}
                 </div>
+                {visibleCount < filteredPublications.length && (
+                  <div className="load-more">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => setVisibleCount((c) => c + 6)}
+                    >
+                      Voir plus
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
-            {activeView === 'graph' && (
+            {activeView === "graph" && (
               <div className="graph-view">
-                <KnowledgeGraph 
+                <KnowledgeGraph
                   graphData={graphData}
                   loading={graphLoading}
                   error={graphError}
-                  onNodeClick={(node) => console.log('Node clicked:', node)}
+                  onNodeClick={(node) => console.log("Node clicked:", node)}
                 />
               </div>
             )}
 
-            {activeView === 'table' && (
+            {activeView === "table" && (
               <div className="table-view">
-                <DataTable 
+                <DataTable
                   publications={filteredPublications}
                   selectedPublications={selectedPublications}
                   onPublicationSelect={handlePublicationSelect}
@@ -388,7 +513,7 @@ const Explorer = () => {
             )}
 
             {/* No Results - seulement pour Cards et Table */}
-            {activeView !== 'graph' && filteredPublications.length === 0 && (
+            {activeView !== "graph" && filteredPublications.length === 0 && (
               <div className="no-results">
                 <div className="no-results-icon">🔍</div>
                 <h3>No publications found</h3>
@@ -400,11 +525,14 @@ const Explorer = () => {
             )}
 
             {/* Graph No Data */}
-            {activeView === 'graph' && !graphData && !graphLoading && (
+            {activeView === "graph" && !graphData && !graphLoading && (
               <div className="graph-no-data">
                 <div className="no-results-icon">🌐</div>
                 <h3>No graph data loaded</h3>
-                <p>Use the controls on the left to search or load the knowledge graph</p>
+                <p>
+                  Use the controls on the left to search or load the knowledge
+                  graph
+                </p>
               </div>
             )}
           </div>
