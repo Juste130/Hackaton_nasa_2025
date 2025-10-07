@@ -6,10 +6,7 @@ const router = Router();
 
 // GET /api/publications
 router.get("/publications", async (req, res) => {
-  const { title, author, journal, from, to, skip, take } = req.query as Record<
-    string,
-    string | undefined
-  >;
+  const { title, author, journal, from, to, skip, take, phenomenon, mission, organism } = req.query as Record<string, string | undefined>;
 
   const filters: any = {};
 
@@ -23,6 +20,21 @@ router.get("/publications", async (req, res) => {
     filters.publication_date = {};
     if (from) (filters.publication_date as any).gte = new Date(String(from));
     if (to) (filters.publication_date as any).lte = new Date(String(to));
+  }
+
+  // Ajout du filtrage par mission
+  if (mission) {
+    filters.mission = { contains: String(mission), mode: "insensitive" };
+  }
+
+  // Ajout du filtrage par organisme
+  if (organism) {
+    filters.organisms = { has: String(organism) };
+  }
+
+  // Ajout du filtrage par phénomène
+  if (phenomenon) {
+    filters.phenomena = { has: String(phenomenon) };
   }
 
   let authorFilter = undefined as any;
