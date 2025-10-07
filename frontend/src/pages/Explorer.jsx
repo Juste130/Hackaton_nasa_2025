@@ -83,13 +83,109 @@ const Explorer = () => {
         </p>
       </div>
 
-      <div
-        className={`explorer-content ${
-          activeView === "graph" ? "graph-mode" : ""
-        }`}
-      >
+      <div className={`explorer-content ${activeView === "graph" ? "graph-mode" : ""}`}>
         <aside className="filters-sidebar slide-in">
-          {activeView === "graph" ? (
+          {/* Barre de recherche commune */}
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search publications..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
+
+          {/* Filtres communs */}
+          <div className="filter-group">
+            <h3>Publication Year</h3>
+            <div className="year-inputs">
+              <div className="year-input-group">
+                <label htmlFor="year-from">From:</label>
+                <input
+                  id="year-from"
+                  type="number"
+                  min={minYear}
+                  max={maxYear}
+                  value={selectedFilters.yearRange[0]}
+                  onChange={(e) => {
+                    let newStart = parseInt(e.target.value) || minYear;
+                    newStart = Math.max(
+                      minYear,
+                      Math.min(newStart, selectedFilters.yearRange[1])
+                    );
+                    handleYearRangeChange([
+                      newStart,
+                      selectedFilters.yearRange[1],
+                    ]);
+                  }}
+                  className="year-input"
+                  placeholder={minYear.toString()}
+                />
+              </div>
+
+              <div className="year-input-group">
+                <label htmlFor="year-to">To:</label>
+                <input
+                  id="year-to"
+                  type="number"
+                  min={minYear}
+                  max={maxYear}
+                  value={selectedFilters.yearRange[1]}
+                  onChange={(e) => {
+                    let newEnd = parseInt(e.target.value) || maxYear;
+                    newEnd = Math.max(
+                      selectedFilters.yearRange[0],
+                      Math.min(newEnd, maxYear)
+                    );
+                    handleYearRangeChange([
+                      selectedFilters.yearRange[0],
+                      newEnd,
+                    ]);
+                  }}
+                  className="year-input"
+                  placeholder={maxYear.toString()}
+                />
+              </div>
+            </div>
+          </div>
+
+          {Object.entries(filters).map(([category, options]) => (
+            <div key={category} className="filter-group">
+              <h3>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </h3>
+              <div className="filter-options">
+                {options.map((option) => (
+                  <label key={option} className="filter-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedFilters[category].includes(option)}
+                      onChange={() => handleFilterToggle(category, option)}
+                    />
+                    <span>{option}</span>
+                    <span className="filter-count">
+                      (
+                      {
+                        publications.filter((pub) =>
+                          pub[category]?.includes(option)
+                        ).length
+                      }
+                      )
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Bouton commun pour réinitialiser les filtres */}
+          <button className="clear-filters-btn" onClick={clearAllFilters}>
+            Clear All Filters
+          </button>
+
+          {/* Contrôles spécifiques à la vue graph */}
+          {activeView === "graph" && (
             <GraphControls
               onSearch={handleGraphSearch}
               onFilter={handleGraphFilter}
@@ -99,104 +195,6 @@ const Explorer = () => {
               loading={graphLoading}
               stats={graphData?.stats}
             />
-          ) : (
-            <>
-              <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="Search publications..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="search-input"
-                />
-              </div>
-
-              <div className="filter-group">
-                <h3>Publication Year</h3>
-                <div className="year-inputs">
-                  <div className="year-input-group">
-                    <label htmlFor="year-from">From:</label>
-                    <input
-                      id="year-from"
-                      type="number"
-                      min={minYear}
-                      max={maxYear}
-                      value={selectedFilters.yearRange[0]}
-                      onChange={(e) => {
-                        let newStart = parseInt(e.target.value) || minYear;
-                        newStart = Math.max(
-                          minYear,
-                          Math.min(newStart, selectedFilters.yearRange[1])
-                        );
-                        handleYearRangeChange([
-                          newStart,
-                          selectedFilters.yearRange[1],
-                        ]);
-                      }}
-                      className="year-input"
-                      placeholder={minYear.toString()}
-                    />
-                  </div>
-
-                  <div className="year-input-group">
-                    <label htmlFor="year-to">To:</label>
-                    <input
-                      id="year-to"
-                      type="number"
-                      min={minYear}
-                      max={maxYear}
-                      value={selectedFilters.yearRange[1]}
-                      onChange={(e) => {
-                        let newEnd = parseInt(e.target.value) || maxYear;
-                        newEnd = Math.max(
-                          selectedFilters.yearRange[0],
-                          Math.min(newEnd, maxYear)
-                        );
-                        handleYearRangeChange([
-                          selectedFilters.yearRange[0],
-                          newEnd,
-                        ]);
-                      }}
-                      className="year-input"
-                      placeholder={maxYear.toString()}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {Object.entries(filters).map(([category, options]) => (
-                <div key={category} className="filter-group">
-                  <h3>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </h3>
-                  <div className="filter-options">
-                    {options.map((option) => (
-                      <label key={option} className="filter-option">
-                        <input
-                          type="checkbox"
-                          checked={selectedFilters[category].includes(option)}
-                          onChange={() => handleFilterToggle(category, option)}
-                        />
-                        <span>{option}</span>
-                        <span className="filter-count">
-                          (
-                          {
-                            publications.filter((pub) =>
-                              pub[category]?.includes(option)
-                            ).length
-                          }
-                          )
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <button className="clear-filters-btn" onClick={clearAllFilters}>
-                Clear All Filters
-              </button>
-            </>
           )}
         </aside>
 
@@ -206,28 +204,22 @@ const Explorer = () => {
           <div className="view-controls">
             <div className="view-toggles">
               <button
-                className={`view-toggle ${
-                  activeView === "cards" ? "active" : ""
-                }`}
+                className={`view-toggle ${activeView === "cards" ? "active" : ""}`}
                 onClick={() => setActiveView("cards")}
               >
-                📄 Cards
+                 Cards
               </button>
               <button
-                className={`view-toggle ${
-                  activeView === "graph" ? "active" : ""
-                }`}
+                className={`view-toggle ${activeView === "graph" ? "active" : ""}`}
                 onClick={() => setActiveView("graph")}
               >
-                🔗 Graph
+                 Graph
               </button>
               <button
-                className={`view-toggle ${
-                  activeView === "table" ? "active" : ""
-                }`}
+                className={`view-toggle ${activeView === "table" ? "active" : ""}`}
                 onClick={() => setActiveView("table")}
               >
-                📊 Table
+                 Table
               </button>
             </div>
 
