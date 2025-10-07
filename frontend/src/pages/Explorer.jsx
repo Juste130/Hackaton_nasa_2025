@@ -150,13 +150,12 @@ const Explorer = () => {
             </div>
           </div>
 
-          {Object.entries(filters).map(([category, options]) => (
+          {/* Filtres spécifiques : Organisms, Phenomena, Missions */}
+          {["organisms", "phenomena", "missions"].map((category) => (
             <div key={category} className="filter-group">
-              <h3>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </h3>
+              <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
               <div className="filter-options">
-                {options.map((option) => (
+                {filters[category].map((option) => (
                   <label key={option} className="filter-option">
                     <input
                       type="checkbox"
