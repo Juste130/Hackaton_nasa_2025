@@ -11,49 +11,58 @@ const PublicationCard = ({
 
   return (
     <div className={`publication-card fade-in ${isSelected ? "selected" : ""}`}>
-      <div className="card-header">
-        <h3 className="publication-title">{publication.title}</h3>
-        <div className="publication-meta">
-          <span className="date">
-            {new Date(publication.date).toLocaleDateString()}
-          </span>
-          <span className="citations">
-            📊 {publication.citations} citations
-          </span>
+      <div>
+        <div className="card-header">
+          <h3 className="publication-title">{publication.title}</h3>
+          <div className="publication-meta">
+            <span className="date">
+              {new Date(publication.date).toLocaleDateString()}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div className="authors">{publication.authors.join(", ")}</div>
+        <div className="authors">{publication.authors.join(", ")}</div>
 
-      <p className="journal">{publication.journal}</p>
+        <p className="journal">{publication.journal}</p>
 
-      <div className="abstract">
-        <p>
-          {isExpanded
-            ? publication.abstract
-            : `${publication.abstract.substring(0, 200)}...`}
-        </p>
-        <button
-          className="expand-btn"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? "See less" : "See more"}
-        </button>
-      </div>
+        <div className="abstract">
+          <p>
+            {isExpanded
+              ? publication.abstract
+              : `${publication.abstract.substring(0, 200)}...`}
+          </p>
+          <button
+            className="expand-btn"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? "See less" : "See more"}
+          </button>
+        </div>
 
-      <div className="tags">
-        {publication.mesh_terms.map((org) => console.log(org))}
-        {publication.phenomena.map((phen) => (
-          <span key={phen} className="tag phenomenon">
-            ⚡ {phen}
-          </span>
-        ))}
-        {publication.systems.map((sys) => (
-          <span key={sys} className="tag system">
-            🔬 {sys}
-          </span>
-        ))}
-        <span className="tag mission">🚀 {publication.mission}</span>
+        <div className="tags">
+          {Array.isArray(publication.mesh_terms) &&
+            publication.mesh_terms.map((kw, idx) => {
+              const text =
+                typeof kw === "string" ? kw : kw && kw.term ? kw.term : "";
+              if (!text) return null;
+              return (
+                <span key={`${text}-${idx}`} className="tag mesh_term">
+                  🏷️ {text}
+                </span>
+              );
+            })}
+          {publication.phenomena.map((phen) => (
+            <span key={phen} className="tag phenomenon">
+              ⚡ {phen}
+            </span>
+          ))}
+          {publication.systems.map((sys) => (
+            <span key={sys} className="tag system">
+              🔬 {sys}
+            </span>
+          ))}
+          <span className=""> {publication.mission}</span>
+        </div>
       </div>
 
       <div className="card-actions">

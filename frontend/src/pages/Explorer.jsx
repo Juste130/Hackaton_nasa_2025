@@ -5,270 +5,68 @@ import GraphControls from "../components/GraphControls";
 import KnowledgeGraph from "../components/KnowledgeGraph";
 import PublicationCard from "../components/PublicationCard";
 import { filters } from "../data/mockData";
-import graphApiService from "../services/graphApi";
+import { useExplorerFilters } from "../hooks/useExplorerFilters";
+import { useGraphData } from "../hooks/useGraphData";
+import { usePublications } from "../hooks/usePublications";
+import { useSelection } from "../hooks/useSelection";
 import "./Explorer.css";
 
 const Explorer = () => {
   const [activeView, setActiveView] = useState("cards"); // 'cards', 'graph', 'table'
-  const [publications, setPublications] = useState([]);
-  const [filteredPublications, setFilteredPublications] = useState([]);
-
-  // States pour les filtres classiques (Cards/Table)
-  const currentYear = new Date().getFullYear();
-  const [minYear, setMinYear] = useState(currentYear);
-  const [maxYear, setMaxYear] = useState(currentYear);
-  const [selectedFilters, setSelectedFilters] = useState({
-    organisms: [],
-    phenomena: [],
-    systems: [],
-    missions: [],
-    yearRange: [currentYear, currentYear],
-  });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPublications, setSelectedPublications] = useState([]);
   const [showAIPanel, setShowAIPanel] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(6);
-  const [loadingPublications, setLoadingPublications] = useState(true);
 
-  // States pour le graphe
-  const [graphData, setGraphData] = useState(null);
-  const [graphLoading, setGraphLoading] = useState(false);
-  const [graphError, setGraphError] = useState(null);
+  const { publications, loadingPublications, currentYear, minYear, maxYear } =
+    usePublications();
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedFilters,
+    filteredPublications,
+    handleFilterToggle,
+    handleYearRangeChange,
+    clearAllFilters,
+  } = useExplorerFilters({ publications, currentYear, minYear, maxYear });
+  const {
+    selectedPublications,
+    setSelectedPublications,
+    visibleCount,
+    setVisibleCount,
+    visiblePublications,
+    handlePublicationSelect,
+    handleSelectAll,
+  } = useSelection(filteredPublications);
+  const {
+    graphData,
+    graphLoading,
+    graphError,
+    search,
+    filter,
+    loadFull,
+    clear,
+    dismissError,
+  } = useGraphData();
+  console.log(publications.map((pub) => pub.mesh_terms));
 
-  // Chargement initial depuis l'API backend et mapping vers le format UI
   useEffect(() => {
-    const controller = new AbortController();
-    const fetchData = async () => {
-      try {
-        setLoadingPublications(true);
-        const baseUrl =
-          process.env.REACT_APP_API_URL || "http://localhost:3000";
-        const res = await fetch(`${baseUrl}/api/publications`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        const apiData = await res.json();
-
-        const mapped = (apiData || []).map((p) => ({
-          id: p.id,
-          pmcid: p.pmcid || "",
-          title: p.title || "",
-          date: p.publication_date
-            ? new Date(p.publication_date).toISOString()
-            : p.created_at || new Date().toISOString(),
-          citations: 0,
-          authors: Array.isArray(p.publication_authors)
-            ? p.publication_authors.map((pa) => {
-                const first = pa?.authors?.firstname
-                  ? `${pa.authors.firstname} `
-                  : "";
-                const last = pa?.authors?.lastname || "";
-                const full = `${first}${last}`.trim();
-                return full || "Unknown";
-              })
-            : [],
-          journal: p.journal || "",
-          abstract: p.abstract || "",
-          mesh_terms: p.publication_mesh_terms || [],
-          keywords: p.publication_keywords || [],
-          entities: p.publication_entities || [],
-          text_sections: p.text_sections || [],
-          organisms: [],
-          phenomena: [],
-          systems: [],
-          mission: "",
-        }));
-
-        setPublications(mapped);
-        setFilteredPublications(mapped);
-
-        if (mapped.length > 0) {
-          const years = mapped
-            .map((pub) => new Date(pub.date).getFullYear())
-            .filter((y) => !Number.isNaN(y));
-          const computedMin = Math.min(...years);
-          const computedMax = Math.max(...years);
-          setMinYear(Number.isFinite(computedMin) ? computedMin : currentYear);
-          setMaxYear(Number.isFinite(computedMax) ? computedMax : currentYear);
-          setSelectedFilters((prev) => ({
-            ...prev,
-            yearRange: [
-              Number.isFinite(computedMin) ? computedMin : currentYear,
-              Number.isFinite(computedMax) ? computedMax : currentYear,
-            ],
-          }));
-        }
-      } catch (e) {
-        if (e.name !== "AbortError") {
-          console.error("Failed to fetch publications:", e);
-        }
-      } finally {
-        setLoadingPublications(false);
-      }
-    };
-    fetchData();
-    return () => controller.abort();
-  }, []);
-
-  // Filtrage pour Cards et Table uniquement
-  useEffect(() => {
-    if (activeView === "graph") return;
-
-    let results = publications;
-
-    // Text search filter
-    if (searchQuery) {
-      results = results.filter(
-        (pub) =>
-          pub.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          pub.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          pub.authors.some((author) =>
-            author.toLowerCase().includes(searchQuery.toLowerCase())
-          ) ||
-          pub.journal.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (activeView !== "graph") {
+      setVisibleCount(6);
     }
-
-    // Category filters
-    Object.keys(selectedFilters).forEach((key) => {
-      if (selectedFilters[key].length > 0 && key !== "yearRange") {
-        results = results.filter((pub) =>
-          selectedFilters[key].some((filter) => pub[key]?.includes(filter))
-        );
-      }
-    });
-
-    // Year range filter
-    results = results.filter((pub) => {
-      const pubYear = new Date(pub.date).getFullYear();
-      return (
-        pubYear >= selectedFilters.yearRange[0] &&
-        pubYear <= selectedFilters.yearRange[1]
-      );
-    });
-
-    setFilteredPublications(results);
-    setVisibleCount(6);
   }, [selectedFilters, searchQuery, activeView]);
 
-  // Handlers pour filtres classiques
-  const handleFilterToggle = (category, value) => {
-    setSelectedFilters((prev) => {
-      const newFilters = { ...prev };
-      if (newFilters[category].includes(value)) {
-        newFilters[category] = newFilters[category].filter(
-          (item) => item !== value
-        );
-      } else {
-        newFilters[category] = [...newFilters[category], value];
-      }
-      return newFilters;
-    });
-  };
+  const handleGraphSearch = async (searchParams) => search(searchParams);
+  const handleGraphFilter = async (filterParams) => filter(filterParams);
+  const handleGraphLoadFull = async () => loadFull({ limit: 100 });
+  const handleGraphClear = () => clear();
 
-  const handleYearRangeChange = (newRange) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      yearRange: newRange,
-    }));
-  };
-
-  const handlePublicationSelect = (pubId) => {
-    setSelectedPublications((prev) => {
-      if (prev.includes(pubId)) {
-        return prev.filter((id) => id !== pubId);
-      } else {
-        return [...prev, pubId];
-      }
-    });
-  };
-
-  const handleSelectAll = () => {
-    const visible = filteredPublications.slice(0, visibleCount);
-    const visibleIds = visible.map((pub) => pub.id);
-    const allVisibleSelected = visibleIds.every((id) =>
-      selectedPublications.includes(id)
-    );
-    if (allVisibleSelected) {
-      setSelectedPublications((prev) =>
-        prev.filter((id) => !visibleIds.includes(id))
-      );
-    } else {
-      setSelectedPublications((prev) =>
-        Array.from(new Set([...prev, ...visibleIds]))
-      );
-    }
-  };
-
-  const clearAllFilters = () => {
-    setSelectedFilters({
-      organisms: [],
-      phenomena: [],
-      systems: [],
-      missions: [],
-      yearRange: [minYear, currentYear],
-    });
-    setSearchQuery("");
-    setSelectedPublications([]);
-  };
-
-  // Handlers pour le graphe
-  const handleGraphSearch = async (searchParams) => {
-    setGraphLoading(true);
-    setGraphError(null);
-    try {
-      const data = await graphApiService.searchGraph(searchParams);
-      setGraphData(data);
-    } catch (err) {
-      setGraphError(err.message);
-      console.error("Graph search error:", err);
-    } finally {
-      setGraphLoading(false);
-    }
-  };
-
-  const handleGraphFilter = async (filterParams) => {
-    setGraphLoading(true);
-    setGraphError(null);
-    try {
-      const data = await graphApiService.filterGraph(filterParams);
-      setGraphData(data);
-    } catch (err) {
-      setGraphError(err.message);
-      console.error("Graph filter error:", err);
-    } finally {
-      setGraphLoading(false);
-    }
-  };
-
-  const handleGraphLoadFull = async () => {
-    setGraphLoading(true);
-    setGraphError(null);
-    try {
-      const data = await graphApiService.getFullGraph({ limit: 100 });
-      setGraphData(data);
-    } catch (err) {
-      setGraphError(err.message);
-      console.error("Graph load error:", err);
-    } finally {
-      setGraphLoading(false);
-    }
-  };
-
-  const handleGraphClear = () => {
-    setGraphData(null);
-    setGraphError(null);
-  };
-
-  const handleGraphCenter = () => {
-    // Cette fonction sera appelée depuis KnowledgeGraph
-    console.log("Center graph view");
-  };
+  const handleGraphCenter = () => {};
 
   const selectedPubData = publications.filter((pub) =>
     selectedPublications.includes(pub.id)
   );
-  const visiblePublications = filteredPublications.slice(0, visibleCount);
+
+  useEffect(() => {
+    handleGraphLoadFull();
+  }, []);
 
   return (
     <div className="explorer">
@@ -290,10 +88,8 @@ const Explorer = () => {
           activeView === "graph" ? "graph-mode" : ""
         }`}
       >
-        {/* Sidebar conditionnel */}
         <aside className="filters-sidebar slide-in">
           {activeView === "graph" ? (
-            // Contrôles du graphe
             <GraphControls
               onSearch={handleGraphSearch}
               onFilter={handleGraphFilter}
@@ -304,7 +100,6 @@ const Explorer = () => {
               stats={graphData?.stats}
             />
           ) : (
-            // Filtres classiques pour Cards et Table
             <>
               <div className="search-box">
                 <input
@@ -316,7 +111,6 @@ const Explorer = () => {
                 />
               </div>
 
-              {/* Year Range Filter */}
               <div className="filter-group">
                 <h3>Publication Year</h3>
                 <div className="year-inputs">
@@ -370,7 +164,6 @@ const Explorer = () => {
                 </div>
               </div>
 
-              {/* Dynamic Filters */}
               {Object.entries(filters).map(([category, options]) => (
                 <div key={category} className="filter-group">
                   <h3>
@@ -466,7 +259,7 @@ const Explorer = () => {
             {activeView === "graph" && graphError && (
               <div className="graph-error">
                 <span>⚠️ {graphError}</span>
-                <button onClick={() => setGraphError(null)}>✕</button>
+                <button onClick={dismissError}>✕</button>
               </div>
             )}
           </div>
