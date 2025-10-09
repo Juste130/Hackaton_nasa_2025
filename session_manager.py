@@ -168,8 +168,100 @@ class SessionManager:
             
             return messages
     
+    def get_or_create_session(
+        self, 
+        session_id: str, 
+        service_type: str,
+        metadata: Optional[Dict] = None
+    ) -> Dict:
+        """
+        Get existing session or create new one if it doesn't exist
+        
+        Args:
+            session_id: Session UUID to look for
+            service_type: Service type if creating new session
+            metadata: Optional metadata for new session
+        
+        Returns:
+            Session info dictionary with session_id, service_type, etc.
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            
+            # Try to get existing session
+            cursor = conn.execute("""
+                SELECT service_type, created_at, last_accessed, metadata
+                FROM sessions
+                WHERE session_id = ?
+            """, (session_id,))
+            
+            row = cursor.fetchone()
+            
+            if row:
+                # Session exists, update last_accessed and return info
+                now = datetime.utcnow().isoformat()
+                conn.execute("""
+                    UPDATE sessions 
+                    SET last_accessed = ?
+                    WHERE session_id = ?
+                """, (now, session_id))
+                conn.commit()
+                
+                info = {
+                    'session_id': session_id,
+                    'service_type': row['service_type'],
+                    'created_at': row['created_at'],
+                    'last_accessed': now,
+                    'existed': True
+                }
+                
+                if row['metadata']:
+                    info['metadata'] = json.loads(row['metadata'])
+                
+                logger.info(f"📋 Found existing session: {session_id} ({row['service_type']})")
+                return info
+            
+            else:
+                # Session doesn't exist, create new one
+                now = datetime.utcnow().isoformat()
+                
+                conn.execute("""
+                    INSERT INTO sessions (session_id, service_type, created_at, last_accessed, metadata)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    session_id,
+                    service_type,
+                    now,
+                    now,
+                    json.dumps(metadata) if metadata else None
+                ))
+                conn.commit()
+                
+                info = {
+                    'session_id': session_id,
+                    'service_type': service_type,
+                    'created_at': now,
+                    'last_accessed': now,
+                    'existed': False
+                }
+                
+                if metadata:
+                    info['metadata'] = metadata
+                
+                logger.info(f"✨ Created new session: {session_id} ({service_type})")
+                return info
+            
+
     def get_session_info(self, session_id: str) -> Optional[Dict]:
-        """Get session metadata"""
+        """
+        Get session info by session_id
+        
+        Args:
+            session_id: Session UUID
+            
+        Returns:
+            Session info dictionary or None if not found
+        """
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             
@@ -181,21 +273,21 @@ class SessionManager:
             
             row = cursor.fetchone()
             
-            if not row:
-                return None
+            if row:
+                info = {
+                    'session_id': session_id,
+                    'service_type': row['service_type'],
+                    'created_at': row['created_at'],
+                    'last_accessed': row['last_accessed']
+                }
+                
+                if row['metadata']:
+                    info['metadata'] = json.loads(row['metadata'])
+                
+                return info
             
-            info = {
-                'session_id': session_id,
-                'service_type': row['service_type'],
-                'created_at': row['created_at'],
-                'last_accessed': row['last_accessed']
-            }
-            
-            if row['metadata']:
-                info['metadata'] = json.loads(row['metadata'])
-            
-            return info
-    
+            return None
+
     def list_sessions(
         self,
         service_type: Optional[str] = None,

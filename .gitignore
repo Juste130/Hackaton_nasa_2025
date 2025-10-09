@@ -21,3 +21,7 @@ update*
 verify*
 *.db
 frontend/node_modules
+AI/
+dspy_inspect*
+example*
+requirements_*

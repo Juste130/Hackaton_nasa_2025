@@ -40,36 +40,6 @@ This project provides intelligent analysis of NASA space biology research throug
          └─────────────────────────────────────────────────┘
 ```
 
-## Components
-
-### 1. Data Layer
-- **PostgreSQL**: Stores publication metadata, authors, text sections
-- **Neo4j**: Knowledge graph with entities and relationships
-- **Vector Database**: Semantic embeddings for similarity search
-
-### 2. AI Services
-- **Summarizer**: Generates structured summaries of scientific articles
-- **RAG Assistant**: Multi-hop reasoning with specified publications
-- **Generic RAG**: Autonomous research assistant with tool selection
-
-### 3. Search Engine
-- **Hybrid Search**: Combines semantic similarity and keyword matching
-- **Entity Search**: Find publications by organisms, phenomena, MeSH terms
-- **Related Articles**: Semantic relationship discovery
-
-### 4. Knowledge Graph API
-- **Full Graph Export**: Retrieve complete or filtered graph data
-- **Search-Based Graphs**: Generate graphs from semantic search results
-- **Interactive Filtering**: Node types, organisms, phenomena, date ranges
-- **Node Details**: Detailed information with neighbor exploration
-
-### 5. Interactive Frontend
-- **D3.js Visualization**: Force-directed graph with physics simulation
-- **Drag & Drop**: Interactive node positioning with mouse
-- **Zoom & Pan**: Navigate large graphs with smooth transitions
-- **Real-time Filtering**: Dynamic graph updates based on search/filters
-- **Node Details**: Tooltips and expandable information panels
-
 ## Installation
 
 ### Prerequisites
@@ -107,6 +77,7 @@ NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
 NEO4J_USERNAME=neo4j
 NEO4J_PASSWORD=your-password
 MISTRAL_API_KEY=your-mistral-api-key
+REDIS_URL=redis://localhost:6379/0
 ```
 
 
@@ -119,6 +90,9 @@ uvicorn api_ai:app --reload --port 8000
 
 # Production mode
 uvicorn api_ai:app --host 0.0.0.0 --port 8000
+
+# Alternative: using main.py
+python main.py
 ```
 
 ### Frontend Visualization
@@ -132,10 +106,11 @@ python serve_frontend.py --port 3001
 
 ### Access Points
 - **API Documentation**: http://localhost:8000/docs
+- **Interactive API**: http://localhost:8000/redoc
 - **Graph Visualization**: http://localhost:3000
 - **Health Check**: http://localhost:8000/health
 
-## API Reference
+## Complete API Reference
 
 ### Base URL
 ```
@@ -148,57 +123,357 @@ Include session ID in headers when using sessions:
 X-Session-ID: your-session-id
 ```
 
-## Knowledge Graph API
+---
 
-### Get Full Graph
-**GET** `/api/graph/full`
+## 📊 Core API Routes
 
-Retrieve the complete knowledge graph with optional filtering.
+### Root & Health
+```bash
+# API information and available endpoints
+GET /
 
-**Query Parameters:**
-- `limit` (int): Maximum nodes to return (default: 100)
-- `include_isolated` (bool): Include nodes with no connections (default: false)
+# Health check for all services
+GET /health
+```
+
+**Example Response:**
+```json
+{
+  "message": "NASA AI Services API",
+  "version": "2.0.0",
+  "endpoints": {
+    "health": "/health",
+    "sessions": "/api/sessions",
+    "summarize": "/api/summarize",
+    "rag": "/api/rag/ask",
+    "generic_rag": "/api/rag/generic",
+    "search": "/api/search",
+    "search_filters": "/api/search/filters"
+  }
+}
+```
+
+---
+
+## 💬 Session Management Routes
+
+### Create Session
+**POST** `/api/sessions`
+
+Create a new conversation session for a specific AI service.
+
+**Request Body:**
+```json
+{
+  "service_type": "summarizer | rag_assistant | generic_rag | search",
+  "metadata": {
+    "user_id": "optional",
+    "project": "optional"
+  }
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/sessions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service_type": "generic_rag",
+    "metadata": {"project": "bone_research"}
+  }'
+```
 
 **Response:**
 ```json
 {
-  "nodes": [
-    {
-      "id": "PMC123456",
-      "label": "Publication",
-      "properties": {
-        "title": "Effects of Microgravity on Bone Density",
-        "journal": "Space Medicine",
-        "publication_date": "2023-01-15"
-      },
-      "size": 25,
-      "color": "#3498db"
-    }
-  ],
-  "edges": [
-    {
-      "id": "PMC123456_STUDIES_mouse",
-      "source": "PMC123456",
-      "target": "mouse",
-      "type": "STUDIES",
-      "properties": {},
-      "weight": 1.0
-    }
-  ],
-  "stats": {
-    "total_nodes": 150,
-    "total_edges": 300,
-    "node_types": {
-      "Publication": 50,
-      "Organism": 25,
-      "Phenomenon": 30
-    },
-    "edge_types": {
-      "STUDIES": 75,
-      "INVESTIGATES": 60
-    }
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "service_type": "generic_rag",
+  "created_at": "2024-01-01T10:00:00Z"
+}
+```
+
+### Get Session History
+**GET** `/api/sessions/{session_id}/history`
+
+**Query Parameters:**
+- `limit` (optional): Maximum messages to return
+
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/sessions/550e8400-e29b-41d4-a716-446655440000/history?limit=10"
+```
+
+### List All Sessions
+**GET** `/api/sessions`
+
+**Query Parameters:**
+- `service_type` (optional): Filter by service type
+- `limit` (optional, default: 50): Maximum sessions to return
+
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/sessions?service_type=generic_rag&limit=20"
+```
+
+### Delete Session
+**DELETE** `/api/sessions/{session_id}`
+
+**cURL Example:**
+```bash
+curl -X DELETE "http://localhost:8000/api/sessions/550e8400-e29b-41d4-a716-446655440000"
+```
+
+---
+
+## 📄 AI Services Routes
+
+### Article Summarizer
+**POST** `/api/summarize`
+
+Generate structured summary of a scientific article.
+
+**Request Body:**
+```json
+{
+  "pmcid": "PMC1234567"
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/summarize" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your-session-id" \
+  -d '{"pmcid": "PMC1234567"}'
+```
+
+**Response:**
+```json
+{
+  "pmcid": "PMC1234567",
+  "summary": {
+    "executive_summary": "This study investigates the effects of microgravity...",
+    "key_findings": [
+      "Bone density decreased by 15% after 6 months",
+      "Calcium metabolism significantly altered"
+    ],
+    "methodology": "Longitudinal study with 20 astronauts over 12 months",
+    "organisms_studied": "Human subjects",
+    "space_relevance": "Directly applicable to long-duration spaceflight",
+    "future_directions": "Investigate countermeasures and prevention strategies"
+  },
+  "metadata": {
+    "title": "Bone Loss in Long-Duration Spaceflight",
+    "authors": ["Smith, J.", "Johnson, M."],
+    "journal": "Space Medicine & Biology",
+    "publication_date": "2024-01-01"
   }
 }
+```
+
+### RAG Assistant (Specific Publications)
+**POST** `/api/rag/ask`
+
+Ask questions about specific publications with multi-hop reasoning.
+
+**Request Body:**
+```json
+{
+  "question": "What are the main findings about bone density changes?",
+  "pmcids": ["PMC1234567", "PMC7890123"]
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/rag/ask" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your-session-id" \
+  -d '{
+    "question": "What are the protective mechanisms against radiation?",
+    "pmcids": ["PMC1234567", "PMC2345678"]
+  }'
+```
+
+### Generic RAG (Autonomous Research)
+**POST** `/api/rag/generic`
+
+Ask any research question - AI autonomously searches and uses tools.
+
+**Request Body:**
+```json
+{
+  "question": "What do we know about cardiovascular changes in microgravity?"
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/rag/generic" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your-session-id" \
+  -d '{
+    "question": "How does microgravity affect the immune system in mice?"
+  }'
+```
+
+**Response (both RAG endpoints):**
+```json
+{
+  "role": "assistant",
+  "content": "Based on multiple studies, cardiovascular changes in microgravity include...",
+  "metadata": {
+    "citations": ["PMC1111111", "PMC222222"],
+    "confidence": "high",
+    "tools_used": ["search_publications", "get_section_content"],
+    "reasoning_trace": [
+      "Searching for cardiovascular microgravity studies",
+      "Found 8 relevant publications",
+      "Analyzing cardiovascular adaptation mechanisms"
+    ]
+  },
+  "timestamp": "2024-01-01T10:05:30Z"
+}
+```
+
+---
+
+## 🔍 Search Engine Routes
+
+### Hybrid Search
+**POST** `/api/search`
+
+Advanced search with semantic understanding, keyword matching, and filtering.
+
+**Request Body:**
+```json
+{
+  "query": "bone loss in microgravity",
+  "mode": "hybrid",
+  "limit": 10,
+  "page": 1,
+  "min_similarity": 0.3,
+  "year_from": 2020,
+  "year_to": 2024,
+  "journal": "Space Medicine",
+  "include_graph_context": false
+}
+```
+
+**Search Modes (dropdown in Swagger UI):**
+- `semantic`: Conceptual similarity using AI embeddings
+- `fulltext`: Exact keyword matching
+- `hybrid`: Combined approach (recommended)
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: your-session-id" \
+  -d '{
+    "query": "muscle atrophy countermeasures",
+    "mode": "hybrid",
+    "limit": 15,
+    "page": 1,
+    "min_similarity": 0.4,
+    "year_from": 2018
+  }'
+```
+
+**Response:**
+```json
+{
+  "query": "bone loss in microgravity",
+  "mode": "hybrid",
+  "results": [
+    {
+      "pmcid": "PMC1234567",
+      "title": "Effects of Microgravity on Bone Density",
+      "abstract": "This study examines changes in bone mineral density...",
+      "journal": "Space Medicine & Biology",
+      "publication_date": "2023-06-15",
+      "score": 0.85,
+      "search_method": "hybrid",
+      "match_type": "highly_similar",
+      "doi": "10.1000/space.2023.001",
+      "authors": "Smith, J., Johnson, M., Brown, K.",
+      "keywords_text": "microgravity, bone loss, calcium metabolism",
+      "mesh_terms_text": "Bone Density, Weightlessness, Space Flight",
+      "has_full_text": true,
+      "sections_count": 8,
+      "full_text_snippet": "Results showed significant <b>bone loss</b> in <b>microgravity</b> conditions..."
+    }
+  ],
+  "total_count": 45,
+  "page": 1,
+  "limit": 10,
+  "total_pages": 5,
+  "has_next": true,
+  "has_previous": false,
+  "filters_applied": {
+    "year_from": 2020,
+    "min_similarity": 0.3
+  }
+}
+```
+
+### Search Filters
+**GET** `/api/search/filters`
+
+Get available filter options and statistics for search interface.
+
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/search/filters"
+```
+
+**Response:**
+```json
+{
+  "journals": [
+    {"name": "Space Medicine & Biology", "count": 45},
+    {"name": "Microgravity Science", "count": 32}
+  ],
+  "year_range": {
+    "min_year": 2010,
+    "max_year": 2024
+  },
+  "yearly_distribution": [
+    {"year": 2024, "count": 12},
+    {"year": 2023, "count": 28}
+  ],
+  "top_keywords": [
+    {"keyword": "microgravity", "count": 156},
+    {"keyword": "bone loss", "count": 89}
+  ],
+  "top_mesh_terms": [
+    {"term": "Weightlessness", "count": 134},
+    {"term": "Space Flight", "count": 98}
+  ],
+  "search_modes": [
+    {"value": "semantic", "name": "Semantic Search", "description": "Find conceptually similar content"},
+    {"value": "fulltext", "name": "Full-Text Search", "description": "Exact keyword matching"},
+    {"value": "hybrid", "name": "Hybrid Search", "description": "Combined semantic + keyword search"}
+  ]
+}
+```
+
+---
+
+## 🕸️ Knowledge Graph Routes
+
+### Get Full Graph
+**GET** `/api/graph/full`
+
+Retrieve complete knowledge graph with optional filtering.
+
+**Query Parameters:**
+- `limit` (int, default: 100): Maximum nodes to return
+- `include_isolated` (bool, default: false): Include nodes with no connections
+
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/graph/full?limit=50&include_isolated=false"
 ```
 
 ### Search-Based Graph
@@ -217,21 +492,67 @@ Generate graph from semantic search results.
 }
 ```
 
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/graph/search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "cardiovascular adaptation space",
+    "search_mode": "semantic",
+    "limit": 8,
+    "include_related": true,
+    "max_depth": 1
+  }'
+```
+
 ### Filter Graph
 **POST** `/api/graph/filter`
 
 Get filtered graph based on multiple criteria.
 
+**Available Node Types (dropdown):**
+- `Publication`
+- `Organism` 
+- `Phenomenon`
+- `Finding`
+- `Platform`
+- `Stressor`
+- `Author`
+
+**Available Relation Types (dropdown):**
+- `STUDIES`
+- `INVESTIGATES`
+- `REPORTS`
+- `CONDUCTED_ON`
+- `EXPOSES_TO`
+- `AUTHORED_BY`
+- `AFFECTS`
+- `CAUSES`
+
 **Request Body:**
 ```json
 {
   "node_types": ["Publication", "Organism"],
+  "relation_types": ["STUDIES", "INVESTIGATES"],
   "organism": "mouse",
   "phenomenon": "bone loss",
+  "platform": "International Space Station",
   "date_from": "2020-01-01",
   "date_to": "2023-12-31",
   "limit": 100
 }
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:8000/api/graph/filter" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "node_types": ["Publication", "Organism"],
+    "organism": "rat",
+    "date_from": "2019-01-01",
+    "limit": 75
+  }'
 ```
 
 ### Node Details
@@ -240,37 +561,47 @@ Get filtered graph based on multiple criteria.
 Get detailed information about a specific node and its neighbors.
 
 **Query Parameters:**
-- `include_neighbors` (bool): Include connected nodes (default: true)
-- `max_neighbors` (int): Maximum neighbors to return (default: 20)
+- `include_neighbors` (bool, default: true): Include connected nodes
+- `max_neighbors` (int, default: 20): Maximum neighbors to return
+
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/graph/node/PMC1234567?include_neighbors=true&max_neighbors=15"
+```
 
 ### Graph Statistics
 **GET** `/api/graph/stats`
 
 Get comprehensive graph statistics and analytics.
 
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/graph/stats"
+```
+
 **Response:**
 ```json
 {
   "database_stats": {
-    "total_nodes": 1250,
-    "total_relationships": 3400,
-    "node_types": {
-      "Publication": 500,
-      "Organism": 150,
-      "Phenomenon": 200
-    }
+    "Publication": 608,
+    "Organism": 145,
+    "Phenomenon": 89,
+    "Platform": 23,
+    "Stressor": 45,
+    "Author": 1250
   },
   "analytics": {
     "top_organisms": [
-      {"name": "Mus musculus", "count": 45},
-      {"name": "Rattus rattus", "count": 32}
+      {"name": "Mus musculus", "count": 85},
+      {"name": "Rattus rattus", "count": 67}
     ],
     "top_phenomena": [
-      {"name": "bone loss", "count": 28},
-      {"name": "muscle atrophy", "count": 22}
+      {"name": "bone loss", "count": 45},
+      {"name": "muscle atrophy", "count": 38}
     ],
     "research_gaps": [
-      {"system": "cardiovascular", "gap_score": 0.85}
+      {"system": "cardiovascular", "gap_score": 0.75},
+      {"system": "neurological", "gap_score": 0.68}
     ]
   },
   "visualization_info": {
@@ -281,467 +612,413 @@ Get comprehensive graph statistics and analytics.
     },
     "node_colors": {
       "Publication": "#3498db",
-      "Organism": "#27ae60"
+      "Organism": "#27ae60",
+      "Phenomenon": "#e74c3c"
     }
   }
 }
 ```
 
-## Session Management
+### Graph Health Check
+**GET** `/api/graph/health`
 
-### Create Session
-**POST** `/api/sessions`
+Health check for Neo4j connection.
 
-Create a new conversation session for a specific AI service.
-
-**Request Body:**
-```json
-{
-  "service_type": "summarizer | rag_assistant | generic_rag",
-  "metadata": {
-    "user_id": "optional",
-    "project": "optional"
-  }
-}
+**cURL Example:**
+```bash
+curl "http://localhost:8000/api/graph/health"
 ```
 
-**Response:**
-```json
-{
-  "session_id": "uuid-string",
-  "service_type": "generic_rag",
-  "created_at": "2024-01-01T10:00:00Z"
-}
+---
+
+## 🧰 Available AI Tools
+
+The AI assistants automatically use these tools:
+
+### Publication Analysis Tools
+- **get_article_metadata**: Get title, authors, journal, abstract
+- **get_article_sections**: List available sections in a paper
+- **get_section_content**: Retrieve specific section content (Methods, Results, etc.)
+- **get_article_authors**: Get detailed author information with affiliations
+- **get_related_articles**: Find semantically similar papers
+
+### Search & Discovery Tools
+- **search_publications**: Hybrid semantic + keyword search across all content
+- **search_by_organism**: Find studies on specific organisms (mouse, rat, human, etc.)
+- **search_by_phenomenon**: Find studies on specific phenomena (bone loss, muscle atrophy, etc.)
+- **search_by_mesh_term**: Search using medical subject headings
+
+### Graph Analysis Tools
+- **get_node_details**: Detailed node information with neighbor exploration
+- **filter_graph**: Apply complex filters to graph data
+- **search_graph**: Generate focused graphs from search queries
+
+---
+
+## 🌐 Frontend Visualization
+
+### Access Frontend
+```bash
+# Start frontend server
+python serve_frontend.py
+
+# Open in browser
+http://localhost:3000
 ```
-
-### Get Session History
-**GET** `/api/sessions/{session_id}/history`
-
-Retrieve conversation history for a session.
-
-**Query Parameters:**
-- `limit` (optional): Maximum number of messages to return
-
-**Response:**
-```json
-{
-  "session_id": "uuid-string",
-  "service_type": "generic_rag",
-  "message_count": 4,
-  "messages": [
-    {
-      "role": "user",
-      "content": "What are the effects of microgravity?",
-      "timestamp": "2024-01-01T10:00:00Z",
-      "metadata": {}
-    },
-    {
-      "role": "assistant", 
-      "content": "Microgravity has significant effects...",
-      "timestamp": "2024-01-01T10:00:05Z",
-      "metadata": {
-        "citations": ["PMC123456"],
-        "confidence": "high"
-      }
-    }
-  ]
-}
-```
-
-### List Sessions
-**GET** `/api/sessions`
-
-List all sessions with optional filtering.
-
-**Query Parameters:**
-- `service_type` (optional): Filter by service type
-- `limit` (optional): Maximum sessions to return (default: 50)
-
-### Delete Session
-**DELETE** `/api/sessions/{session_id}`
-
-Delete a session and its history.
-
-## AI Services
-
-### Article Summarizer
-**POST** `/api/summarize`
-
-Generate structured summary of a scientific article.
-
-**Headers:**
-```
-X-Session-ID: optional-session-id
-```
-
-**Request Body:**
-```json
-{
-  "pmcid": "PMC1234567"
-}
-```
-
-**Response:**
-```json
-{
-  "pmcid": "PMC1234567",
-  "summary": {
-    "executive_summary": "Brief overview...",
-    "key_findings": [
-      "Finding 1",
-      "Finding 2"
-    ],
-    "methodology": "Research approach description",
-    "implications": "Significance and impact",
-    "limitations": "Study limitations"
-  },
-  "metadata": {
-    "title": "Article Title",
-    "authors": ["Author 1", "Author 2"],
-    "journal": "Journal Name",
-    "publication_date": "2024-01-01"
-  }
-}
-```
-
-### RAG Assistant
-**POST** `/api/rag/ask`
-
-Ask questions about specific publications with multi-hop reasoning.
-
-**Headers:**
-```
-X-Session-ID: optional-session-id
-```
-
-**Request Body:**
-```json
-{
-  "question": "What are the main findings about bone density?",
-  "pmcids": ["PMC1234567", "PMC7890123"]
-}
-```
-
-**Response:**
-```json
-{
-  "answer": "Based on the studies, bone density...",
-  "citations": ["PMC1234567", "PMC7890123"],
-  "confidence": "high",
-  "tools_used": ["get_section_content", "get_related_articles"],
-  "reasoning_trace": [
-    "I need to examine bone density findings",
-    "Retrieved Methods section from PMC1234567",
-    "Found related studies on bone loss"
-  ]
-}
-```
-
-### Generic RAG
-**POST** `/api/rag/generic`
-
-Ask any research question - AI autonomously searches and uses tools.
-
-**Headers:**
-```
-X-Session-ID: optional-session-id
-```
-
-**Request Body:**
-```json
-{
-  "question": "What do we know about microgravity effects on the cardiovascular system?"
-}
-```
-
-**Response:**
-```json
-{
-  "answer": "Research shows that microgravity causes...",
-  "citations": ["PMC1111111", "PMC2222222", "PMC3333333"],
-  "confidence": "high",
-  "tools_used": ["search_publications", "get_section_content", "search_by_phenomenon"],
-  "reasoning_trace": [
-    "I need to search for cardiovascular microgravity studies",
-    "Found 5 relevant articles",
-    "Examining cardiovascular changes in detail"
-  ]
-}
-```
-
-## Frontend Visualization
 
 ### Interactive Features
 
 #### Graph Navigation
-- **Mouse Controls**: Drag nodes to reposition, scroll to zoom
+- **Mouse Controls**: 
+  - Drag nodes to reposition
+  - Scroll to zoom in/out
+  - Click and drag background to pan
 - **Keyboard Shortcuts**:
   - `Ctrl+F`: Focus search input
   - `Ctrl+R`: Reload full graph
   - `Ctrl+C`: Center view
+  - `Space`: Pause/resume physics simulation
 
 #### Search & Filtering
-- **Semantic Search**: Natural language queries like "bone loss in microgravity"
 - **Search Modes**: Hybrid (default), Semantic only, Keyword only
-- **Node Type Filters**: Publications, Organisms, Phenomena, Platforms
-- **Text Filters**: Filter by organism name, phenomenon, platform
-- **Date Filters**: Limit publications by date range
+- **Node Type Filters**: Filter by Publications, Organisms, Phenomena, etc.
+- **Text Filters**: Search by organism name, phenomenon, platform
+- **Date Range**: Limit publications by publication date
+- **Live Updates**: Graph updates in real-time without page refresh
 
 #### Visual Elements
-- **Node Colors**: Color-coded by type (Publications: blue, Organisms: green, etc.)
-- **Node Sizes**: Based on connection degree and node type
-- **Edge Weights**: Relationship strength affects line thickness
-- **Labels**: Smart labeling with truncation for readability
-- **Tooltips**: Detailed information on hover
-- **Legend**: Interactive color guide
+- **Color Coding**: 
+  - Publications: Blue (#3498db)
+  - Organisms: Green (#27ae60)
+  - Phenomena: Red (#e74c3c)
+  - Platforms: Purple (#9b59b6)
+  - Authors: Gray (#34495e)
+- **Node Sizing**: Based on connection degree and importance
+- **Edge Thickness**: Relationship strength affects line weight
+- **Smart Labels**: Show/hide based on zoom level
+- **Tooltips**: Hover for detailed information
 
-#### Real-time Updates
-- **Dynamic Loading**: Graphs update without page refresh
-- **Statistics Panel**: Live node/edge counts and type distribution
-- **Loading Indicators**: Progress feedback during data fetch
-- **Error Handling**: User-friendly error messages
+### Frontend Configuration
 
-### Configuration
-
-The frontend connects to the API at `http://localhost:8000` by default. To change this, modify the `API_BASE` constant in `frontend/index.html`:
-
+Modify API endpoint in `frontend/index.html`:
 ```javascript
 const API_BASE = 'http://your-api-server:8000/api/graph';
 ```
 
-## Available Tools
+---
 
-The AI assistants have access to these research tools:
+## 📋 Usage Examples
 
-### Publication Tools
-- **get_article_metadata**: Get title, authors, journal, abstract
-- **get_article_sections**: List available sections in a paper
-- **get_section_content**: Retrieve specific section content
-- **get_article_authors**: Get detailed author information
-- **get_related_articles**: Find semantically similar papers
+### Complete Workflow Example
 
-### Search Tools
-- **search_publications**: Hybrid semantic + keyword search
-- **search_by_organism**: Find studies on specific organisms
-- **search_by_phenomenon**: Find studies on phenomena (e.g., "microgravity")
-- **search_by_mesh_term**: Search using medical subject headings
+```bash
+# 1. Create a research session
+SESSION_RESPONSE=$(curl -s -X POST "http://localhost:8000/api/sessions" \
+  -H "Content-Type: application/json" \
+  -d '{"service_type": "generic_rag", "metadata": {"project": "cardiovascular_research"}}')
 
-### Graph Tools
-- **get_node_details**: Detailed node information with neighbors
-- **filter_graph**: Apply complex filters to graph data
-- **search_graph**: Generate graphs from search queries
+SESSION_ID=$(echo $SESSION_RESPONSE | jq -r .session_id)
+echo "Session ID: $SESSION_ID"
 
-## Usage Examples
+# 2. Ask a research question
+curl -X POST "http://localhost:8000/api/rag/generic" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: $SESSION_ID" \
+  -d '{
+    "question": "What are the main cardiovascular adaptations to long-duration spaceflight and what countermeasures have been tested?"
+  }' | jq .
+
+# 3. Search for related publications
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Content-Type: application/json" \
+  -H "X-Session-ID: $SESSION_ID" \
+  -d '{
+    "query": "cardiovascular countermeasures exercise",
+    "mode": "hybrid",
+    "limit": 5,
+    "year_from": 2018
+  }' | jq .
+
+# 4. Get graph visualization for the topic
+curl -X POST "http://localhost:8000/api/graph/search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "cardiovascular exercise countermeasures",
+    "search_mode": "hybrid",
+    "limit": 10,
+    "include_related": true
+  }' | jq .
+
+# 5. Review session history
+curl "http://localhost:8000/api/sessions/$SESSION_ID/history" | jq .
+```
 
 ### Python Client Example
 
 ```python
 import requests
+import json
 
-# Create session
-session_response = requests.post("http://localhost:8000/api/sessions", 
-    json={"service_type": "generic_rag"})
-session_id = session_response.json()["session_id"]
+class NASAResearchClient:
+    def __init__(self, base_url="http://localhost:8000"):
+        self.base_url = base_url
+        self.session_id = None
+    
+    def create_session(self, service_type="generic_rag", metadata=None):
+        """Create a new research session"""
+        response = requests.post(f"{self.base_url}/api/sessions", 
+            json={"service_type": service_type, "metadata": metadata or {}})
+        response.raise_for_status()
+        self.session_id = response.json()["session_id"]
+        return self.session_id
+    
+    def ask_question(self, question):
+        """Ask a research question"""
+        headers = {"X-Session-ID": self.session_id} if self.session_id else {}
+        response = requests.post(f"{self.base_url}/api/rag/generic",
+            headers=headers, json={"question": question})
+        response.raise_for_status()
+        return response.json()
+    
+    def search_publications(self, query, mode="hybrid", **kwargs):
+        """Search publications with filters"""
+        data = {"query": query, "mode": mode, **kwargs}
+        response = requests.post(f"{self.base_url}/api/search", json=data)
+        response.raise_for_status()
+        return response.json()
+    
+    def get_graph(self, query=None, limit=50):
+        """Get graph visualization data"""
+        if query:
+            data = {"query": query, "limit": limit, "include_related": True}
+            response = requests.post(f"{self.base_url}/api/graph/search", json=data)
+        else:
+            response = requests.get(f"{self.base_url}/api/graph/full?limit={limit}")
+        response.raise_for_status()
+        return response.json()
 
-# Ask question
-question_response = requests.post("http://localhost:8000/api/rag/generic",
-    headers={"X-Session-ID": session_id},
-    json={"question": "What are the effects of microgravity on bones?"})
+# Usage example
+client = NASAResearchClient()
+session_id = client.create_session(metadata={"researcher": "Dr. Smith"})
 
-print(question_response.json()["answer"])
-print("Citations:", question_response.json()["citations"])
+# Ask a research question
+result = client.ask_question("What are the effects of microgravity on bone metabolism?")
+print("Answer:", result["content"])
+print("Citations:", result["metadata"]["citations"])
 
-# Get graph data
-graph_response = requests.get("http://localhost:8000/api/graph/full?limit=50")
-graph_data = graph_response.json()
+# Search for related papers
+search_results = client.search_publications(
+    "bone metabolism microgravity",
+    mode="hybrid",
+    year_from=2020,
+    limit=10
+)
+print(f"Found {search_results['total_count']} publications")
+
+# Get visualization data
+graph_data = client.get_graph("bone metabolism")
 print(f"Graph has {len(graph_data['nodes'])} nodes and {len(graph_data['edges'])} edges")
 ```
 
-### JavaScript Client Example
+### JavaScript Frontend Integration
 
 ```javascript
-// Search and visualize graph
-async function searchAndVisualize(query) {
-  const searchResponse = await fetch('http://localhost:8000/api/graph/search', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      query: query,
-      search_mode: 'hybrid',
-      limit: 15,
-      include_related: true
-    })
-  });
-  
-  const graphData = await searchResponse.json();
-  
-  // graphData contains nodes and edges ready for D3.js visualization
-  console.log(`Found ${graphData.nodes.length} nodes`);
-  console.log(`Search query: ${graphData.stats.search_query}`);
-  
-  return graphData;
+class NASAGraphVisualizer {
+    constructor(apiBase = 'http://localhost:8000/api/graph') {
+        this.apiBase = apiBase;
+    }
+    
+    async searchAndVisualize(query, mode = 'hybrid') {
+        const response = await fetch(`${this.apiBase}/search`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                query: query,
+                search_mode: mode,
+                limit: 20,
+                include_related: true,
+                max_depth: 2
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Search failed: ${response.statusText}`);
+        }
+        
+        const graphData = await response.json();
+        this.renderGraph(graphData);
+        return graphData;
+    }
+    
+    async filterGraph(filters) {
+        const response = await fetch(`${this.apiBase}/filter`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(filters)
+        });
+        
+        const graphData = await response.json();
+        this.renderGraph(graphData);
+        return graphData;
+    }
+    
+    async getNodeDetails(nodeId) {
+        const response = await fetch(`${this.apiBase}/node/${nodeId}`);
+        return await response.json();
+    }
+    
+    renderGraph(data) {
+        // D3.js rendering code here
+        console.log(`Rendering ${data.nodes.length} nodes and ${data.edges.length} edges`);
+        // Implementation details in frontend/index.html
+    }
 }
 
-// Use with D3.js
-searchAndVisualize("cardiovascular effects of spaceflight")
-  .then(data => renderGraph(data));
+// Usage
+const visualizer = new NASAGraphVisualizer();
+
+// Search and visualize
+visualizer.searchAndVisualize('cardiovascular microgravity')
+    .then(data => console.log('Graph rendered:', data.stats));
+
+// Filter by organism
+visualizer.filterGraph({
+    node_types: ['Publication', 'Organism'],
+    organism: 'mouse',
+    date_from: '2020-01-01'
+});
 ```
 
-## Development
+---
 
-### Project Structure
-```
-nasa/
-├── api_ai.py              # Main API with AI services
-├── api_neo4j.py           # Knowledge graph API router
-├── session_manager.py     # Session management
-├── ai_summarizer.py       # Article summarization service
-├── ai_rag_assistant.py    # RAG with specific PMCIDs
-├── ai_generic_rag.py      # Autonomous RAG service
-├── search_engine.py       # Hybrid search engine
-├── neo4j_client.py        # Neo4j database client
-├── neo4j_queries.py       # Analytics and complex queries
-├── frontend/
-│   └── index.html         # D3.js visualization interface
-├── serve_frontend.py      # Frontend development server
-├── requirements.txt       # Python dependencies
-└── README.md
-```
+## 🔧 Development & Testing
 
-### Testing
+### API Testing Commands
 
 ```bash
-# Test API endpoints
+# Test all endpoints quickly
+./test_api.sh  # If you create this script
+
+# Or manually test each endpoint:
+
+# 1. Health check
 curl http://localhost:8000/health
-curl http://localhost:8000/api/graph/stats
 
-# Test graph endpoints
-curl -X POST http://localhost:8000/api/graph/search \
+# 2. Create session
+curl -X POST "http://localhost:8000/api/sessions" \
   -H "Content-Type: application/json" \
-  -d '{"query": "bone loss", "limit": 5}'
+  -d '{"service_type": "generic_rag"}'
 
-# Test AI services
-curl -X POST http://localhost:8000/api/rag/generic \
+# 3. Test search
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "bone loss", "mode": "hybrid", "limit": 3}'
+
+# 4. Test AI service
+curl -X POST "http://localhost:8000/api/rag/generic" \
   -H "Content-Type: application/json" \
   -d '{"question": "What causes bone loss in space?"}'
+
+# 5. Test graph endpoints
+curl "http://localhost:8000/api/graph/stats"
+curl "http://localhost:8000/api/graph/full?limit=10"
+
+# 6. Test summarizer
+curl -X POST "http://localhost:8000/api/summarize" \
+  -H "Content-Type: application/json" \
+  -d '{"pmcid": "PMC1234567"}'
 ```
 
-### Adding New Features
+### Environment Variables for Development
 
-#### New Graph Filters
-1. Add filter parameters to `FilterRequest` model in `api_neo4j.py`
-2. Update filter logic in `filter_graph()` endpoint
-3. Add corresponding UI controls in `frontend/index.html`
+```bash
+# .env file for development
+DATABASE_URL=postgresql://user:pass@localhost:5432/nasa_dev
+NEO4J_URI=neo4j://localhost:7687
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=password
+MISTRAL_API_KEY=your_dev_key
+REDIS_URL=redis://localhost:6379/1
+LOG_LEVEL=DEBUG
+ENVIRONMENT=development
+```
 
-#### New Visualization Types
-1. Extend the D3.js code in `frontend/index.html`
-2. Add new rendering functions for different graph layouts
-3. Update the stats and legend systems
+### Production Configuration
 
-#### New AI Tools
-1. Create tool function in appropriate service file
-2. Add citation tracking with `citation_tracker.add_pmcid()`
-3. Register tool in ReAct agent tools list
-4. Update API documentation
+```bash
+# .env file for production
+DATABASE_URL=postgresql://prod_user:prod_pass@prod_host:5432/nasa_prod
+NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=secure_password
+MISTRAL_API_KEY=your_production_key
+REDIS_URL=redis://prod_redis:6379/0
+LOG_LEVEL=INFO
+ENVIRONMENT=production
+```
 
-## Performance Optimization
+---
 
-### Backend
-- **Connection Pooling**: Database connections are pooled and reused
-- **Caching**: LLM responses and embeddings are cached
-- **Async Operations**: Non-blocking I/O for better concurrency
-- **Query Optimization**: Efficient Neo4j queries with proper indexing
+## 📈 Performance & Scaling
 
-### Frontend
-- **Progressive Loading**: Large graphs load incrementally
-- **Viewport Culling**: Only render visible nodes/edges
-- **Throttled Updates**: Smooth animations without performance drops
-- **Smart Labeling**: Labels appear/disappear based on zoom level
+### Rate Limits (Production)
+- Search endpoints: 100 requests/minute per IP
+- AI services: 50 requests/minute per session
+- Graph endpoints: 200 requests/minute per IP
 
-### Scalability
-- **Stateless API**: Horizontal scaling supported
-- **Session Storage**: Database-backed session management
-- **Modular Services**: Individual components can be scaled independently
+### Caching Strategy
+- **Search results**: 30 minutes
+- **Graph data**: 15 minutes
+- **Node details**: 10 minutes
+- **Statistics**: 10 minutes
 
-## Error Handling
+### Optimization Tips
+- Use pagination for large result sets
+- Enable graph context only when needed
+- Cache session IDs for multiple requests
+- Use appropriate search modes (semantic for concepts, fulltext for exact terms)
 
-### API Errors
+---
+
+## 🐛 Error Handling
+
+### HTTP Status Codes
+- **200**: Success
 - **400**: Bad Request (invalid parameters)
-- **404**: Not Found (session or resource)
+- **404**: Not Found (session, publication, or node)
+- **429**: Too Many Requests (rate limited)
 - **500**: Internal Server Error
 - **503**: Service Unavailable (AI services down)
 
-### Frontend Errors
-- **Network Errors**: Graceful fallback with retry options
-- **Data Validation**: Client-side validation before API calls
-- **User Feedback**: Clear error messages and loading states
+### Common Error Responses
 
-## Security
+```json
+{
+  "detail": "Session not found",
+  "status_code": 404
+}
+```
+
+```json
+{
+  "detail": "Invalid search mode. Must be one of: semantic, fulltext, hybrid",
+  "status_code": 400
+}
+```
+
+---
+
+## 🔐 Security Notes
 
 ### API Security
-- **Environment Variables**: Sensitive data stored securely
-- **Input Validation**: All endpoints validate input parameters
-- **CORS Configuration**: Proper cross-origin request handling
-- **Rate Limiting**: Planned feature for production deployment
+- No authentication required for read operations
+- Session isolation prevents data leakage
+- Input validation on all endpoints
+- CORS enabled for frontend integration
 
-### Data Security
-- **Database Security**: Connection pooling with authentication
-- **No Data Logging**: Sensitive query content not logged
-- **Session Isolation**: User sessions are properly isolated
+### Data Privacy
+- Sessions automatically expire after 30 days
+- No personal data stored beyond session metadata
+- Query content not logged in production
 
-## Deployment
-
-### Production Deployment
-```bash
-# Build production container
-docker build -t nasa-ai-api .
-
-# Run with production settings
-docker run -p 8000:8000 --env-file .env nasa-ai-api
-
-# Serve frontend with nginx
-nginx -c /path/to/nginx.conf
-```
-
-### Environment Variables
-Required for production:
-```env
-DATABASE_URL=postgresql://...
-NEO4J_URI=neo4j+s://...
-NEO4J_USERNAME=...
-NEO4J_PASSWORD=...
-MISTRAL_API_KEY=...
-ENVIRONMENT=production
-LOG_LEVEL=INFO
-```
-
-## Contributing
-
-### Development Workflow
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/new-feature`
-3. Make changes with proper testing
-4. Update documentation and examples
-5. Submit pull request with detailed description
-
-### Code Standards
-- **Python**: Follow PEP 8 style guidelines
-- **JavaScript**: Use modern ES6+ syntax
-- **Documentation**: Update README for new features
-- **Testing**: Add tests for new functionality
-
-### Issue Reporting
-- Use GitHub issues for bugs and feature requests
-- Include reproduction steps and environment details
-- Tag issues appropriately (bug, enhancement, documentation)
-
-## License
-
-This project is developed for NASA space biology research analysis.
-
-## Acknowledgments
-
-- NASA Space Biology Program for research data
-- Neo4j for graph database technology
-- D3.js community for visualization tools
-- OpenAI and Mistral for AI capabilities
+---

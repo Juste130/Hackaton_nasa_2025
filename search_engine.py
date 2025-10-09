@@ -36,6 +36,17 @@ class SearchResult:
     search_method: str              # "semantic", "fulltext", or "hybrid"
     full_text_snippet: Optional[str] = None  # For fulltext results
     match_type: Optional[str] = None  # "exact", "similar", "related"
+    doi: Optional[str] = None
+    authors: Optional[str] = None
+    first_affiliation: Optional[str] = None
+    sections_count: Optional[int] = None
+    keywords_text: Optional[str] = None
+    mesh_terms_text: Optional[str] = None
+    has_full_text: Optional[bool] = None
+    matching_sections: Optional[int] = None
+    organisms: Optional[List[str]] = None
+    phenomena: Optional[List[str]] = None
+    platforms: Optional[List[str]] = None
 
 
 class HybridSearchEngine:
@@ -67,29 +78,22 @@ class HybridSearchEngine:
         journal: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Unified search interface
-        
-        Args:
-            query: Search query text
-            mode: SEMANTIC, FULLTEXT, or HYBRID
-            limit: Number of results per page
-            offset: Pagination offset
-            min_similarity: Minimum similarity threshold (for semantic)
-            year_from: Filter publications from year
-            year_to: Filter publications to year
-            journal: Filter by journal name
-        
-        Returns:
-            {
-                "query": str,
-                "mode": str,
-                "results": List[SearchResult],
-                "total_count": int,
-                "page": int,
-                "total_pages": int
-            }
+        Unified search interface with input validation
         """
-        logger.info(f" Searching: '{query}' (mode={mode.value}, limit={limit}, offset={offset})")
+        # Validate query length
+        if not query or len(query.strip()) < 2:
+            return {
+                "query": query,
+                "mode": mode.value,
+                "results": [],
+                "total_count": 0,
+                "page": 1,
+                "total_pages": 0,
+                "has_next": False
+            }
+        
+        query = query.strip()
+        logger.info(f"🔍 Searching: '{query}' (mode={mode.value}, limit={limit}, offset={offset})")
         
         if mode == SearchMode.SEMANTIC:
             results = await self._semantic_search(
@@ -135,28 +139,63 @@ class HybridSearchEngine:
         journal: Optional[str]
     ) -> List[SearchResult]:
         """
-        Semantic search using embeddings
-        Finds conceptually similar publications
+        Enhanced semantic search with corrected database schema
         """
         # Generate query embedding
         query_embedding = self.embeddings_gen.generate_embedding(query)
-        
-        # FIX: Convert to proper JSON format
-        embedding_json = json.dumps(query_embedding)  # ← AJOUTEZ
+        embedding_json = json.dumps(query_embedding)
         
         async with self.db_client.async_session() as session:
-            # Build query with filters
+            # Fixed SQL query - removed DISTINCT and fixed GROUP BY/ORDER BY mismatch
             sql = """
-            SELECT 
-                pmcid, title, abstract, journal, publication_date,
-                1 - (embedding <=> CAST(:query_embedding AS vector)) as similarity
-            FROM publications
-            WHERE embedding IS NOT NULL
-              AND 1 - (embedding <=> CAST(:query_embedding AS vector)) > :min_similarity
+            SELECT
+                p.pmcid, p.title, p.abstract, p.journal, p.publication_date,
+                p.doi, p.full_text_content,
+                1 - (p.embedding <=> CAST(:query_embedding AS vector)) as similarity,
+                
+                -- Authors (aggregated)
+                COALESCE(
+                    STRING_AGG(CONCAT(a.firstname, ' ', a.lastname), ', ') 
+                    FILTER (WHERE a.lastname IS NOT NULL), 
+                    ''
+                ) as authors,
+                
+                -- First affiliation from publication_authors
+                (SELECT pa2.affiliation 
+                 FROM publication_authors pa2 
+                 WHERE pa2.publication_id = p.id AND pa2.affiliation IS NOT NULL 
+                 LIMIT 1) as first_affiliation,
+                
+                -- Text sections count
+                (SELECT COUNT(*) FROM text_sections ts WHERE ts.publication_id = p.id) as sections_count,
+                
+                -- Keywords aggregated from related table
+                COALESCE(
+                    (SELECT STRING_AGG(k.keyword, ', ')
+                     FROM publication_keywords pk
+                     JOIN keywords k ON pk.keyword_id = k.id
+                     WHERE pk.publication_id = p.id), 
+                    ''
+                ) as keywords_text,
+                
+                -- MeSH terms aggregated from related table
+                COALESCE(
+                    (SELECT STRING_AGG(mt.term, ', ')
+                     FROM publication_mesh_terms pmt
+                     JOIN mesh_terms mt ON pmt.mesh_term_id = mt.id
+                     WHERE pmt.publication_id = p.id), 
+                    ''
+                ) as mesh_terms_text
+                
+            FROM publications p
+            LEFT JOIN publication_authors pa ON p.id = pa.publication_id
+            LEFT JOIN authors a ON pa.author_id = a.id
+            WHERE p.embedding IS NOT NULL
+              AND 1 - (p.embedding <=> CAST(:query_embedding AS vector)) > :min_similarity
             """
             
             params = {
-                "query_embedding": embedding_json,  # ← Utiliser JSON au lieu de str()
+                "query_embedding": embedding_json,
                 "min_similarity": min_similarity,
                 "limit": limit,
                 "offset": offset
@@ -164,19 +203,21 @@ class HybridSearchEngine:
             
             # Add filters
             if year_from:
-                sql += " AND EXTRACT(YEAR FROM publication_date) >= :year_from"
+                sql += " AND EXTRACT(YEAR FROM p.publication_date) >= :year_from"
                 params["year_from"] = year_from
             
             if year_to:
-                sql += " AND EXTRACT(YEAR FROM publication_date) <= :year_to"
+                sql += " AND EXTRACT(YEAR FROM p.publication_date) <= :year_to"
                 params["year_to"] = year_to
             
             if journal:
-                sql += " AND LOWER(journal) LIKE LOWER(:journal)"
+                sql += " AND LOWER(p.journal) LIKE LOWER(:journal)"
                 params["journal"] = f"%{journal}%"
             
             sql += """
-            ORDER BY embedding <=> CAST(:query_embedding AS vector)
+            GROUP BY p.id, p.pmcid, p.title, p.abstract, p.journal, p.publication_date,
+                     p.doi, p.full_text_content, p.embedding
+            ORDER BY 1 - (p.embedding <=> CAST(:query_embedding AS vector)) DESC
             LIMIT :limit OFFSET :offset
             """
             
@@ -184,7 +225,8 @@ class HybridSearchEngine:
             
             search_results = []
             for row in result:
-                search_results.append(SearchResult(
+                # Enhanced SearchResult with more metadata
+                search_result = SearchResult(
                     pmcid=row.pmcid,
                     title=row.title,
                     abstract=row.abstract[:300] + '...' if row.abstract and len(row.abstract) > 300 else row.abstract,
@@ -193,7 +235,18 @@ class HybridSearchEngine:
                     score=round(row.similarity, 4),
                     search_method="semantic",
                     match_type="similar" if row.similarity < 0.7 else "highly_similar"
-                ))
+                )
+                
+                # Add extra metadata
+                search_result.doi = row.doi
+                search_result.authors = row.authors
+                search_result.first_affiliation = row.first_affiliation
+                search_result.sections_count = row.sections_count
+                search_result.keywords_text = row.keywords_text
+                search_result.mesh_terms_text = row.mesh_terms_text
+                search_result.has_full_text = bool(row.full_text_content and len(row.full_text_content) > 100)
+                
+                search_results.append(search_result)
             
             return search_results
     
@@ -207,29 +260,119 @@ class HybridSearchEngine:
         journal: Optional[str]
     ) -> List[SearchResult]:
         """
-        Full-text search using PostgreSQL tsvector
-        Exact keyword matching with ranking
+        Enhanced full-text search with corrected database schema
         """
         async with self.db_client.async_session() as session:
             # Create tsquery from user input
-            # Handle multi-word queries: "bone loss" -> "bone & loss"
             tsquery = ' & '.join(query.split())
             
             sql = """
-            SELECT 
-                pmcid, title, abstract, journal, publication_date,
+            SELECT
+                p.pmcid, p.title, p.abstract, p.journal, p.publication_date,
+                p.doi, p.full_text_content,
+                
+                -- Full-text ranking across title, abstract, text sections, keywords, and mesh terms
                 ts_rank(
-                    to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(abstract, '')),
+                    to_tsvector('english', 
+                        COALESCE(p.title, '') || ' ' || 
+                        COALESCE(p.abstract, '') || ' ' ||
+                        COALESCE(p.full_text_content, '') || ' ' ||
+                        COALESCE((
+                            SELECT STRING_AGG(ts.content, ' ') 
+                            FROM text_sections ts 
+                            WHERE ts.publication_id = p.id
+                        ), '') || ' ' ||
+                        COALESCE((
+                            SELECT STRING_AGG(k.keyword, ' ')
+                            FROM publication_keywords pk
+                            JOIN keywords k ON pk.keyword_id = k.id
+                            WHERE pk.publication_id = p.id
+                        ), '') || ' ' ||
+                        COALESCE((
+                            SELECT STRING_AGG(mt.term, ' ')
+                            FROM publication_mesh_terms pmt
+                            JOIN mesh_terms mt ON pmt.mesh_term_id = mt.id
+                            WHERE pmt.publication_id = p.id
+                        ), '')
+                    ),
                     to_tsquery('english', :tsquery)
                 ) AS rank,
-                ts_headline('english', 
-                    COALESCE(abstract, title), 
-                    to_tsquery('english', :tsquery),
-                    'MaxWords=50, MinWords=20'
-                ) AS snippet
-            FROM publications
-            WHERE to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(abstract, ''))
-                  @@ to_tsquery('english', :tsquery)
+                
+                -- Enhanced snippet from multiple sources
+                CASE 
+                    WHEN to_tsvector('english', COALESCE(p.abstract, '')) @@ to_tsquery('english', :tsquery)
+                    THEN ts_headline('english', p.abstract, to_tsquery('english', :tsquery), 'MaxWords=50, MinWords=20')
+                    WHEN to_tsvector('english', COALESCE(p.title, '')) @@ to_tsquery('english', :tsquery)
+                    THEN ts_headline('english', p.title, to_tsquery('english', :tsquery), 'MaxWords=30')
+                    ELSE ts_headline('english', 
+                        COALESCE(p.full_text_content, p.abstract, p.title), 
+                        to_tsquery('english', :tsquery),
+                        'MaxWords=50, MinWords=20'
+                    )
+                END AS snippet,
+                
+                -- Authors
+                COALESCE(
+                    STRING_AGG(CONCAT(a.firstname, ' ', a.lastname), ', ') 
+                    FILTER (WHERE a.lastname IS NOT NULL), 
+                    ''
+                ) as authors,
+                
+                -- Sections that match
+                (SELECT COUNT(*) 
+                 FROM text_sections ts2 
+                 WHERE ts2.publication_id = p.id 
+                   AND to_tsvector('english', ts2.content) @@ to_tsquery('english', :tsquery)
+                ) as matching_sections,
+                
+                -- Keywords aggregated
+                COALESCE(
+                    (SELECT STRING_AGG(k.keyword, ', ')
+                     FROM publication_keywords pk
+                     JOIN keywords k ON pk.keyword_id = k.id
+                     WHERE pk.publication_id = p.id), 
+                    ''
+                ) as keywords_text,
+                
+                -- MeSH terms aggregated
+                COALESCE(
+                    (SELECT STRING_AGG(mt.term, ', ')
+                     FROM publication_mesh_terms pmt
+                     JOIN mesh_terms mt ON pmt.mesh_term_id = mt.id
+                     WHERE pmt.publication_id = p.id), 
+                    ''
+                ) as mesh_terms_text
+                
+            FROM publications p
+            LEFT JOIN publication_authors pa ON p.id = pa.publication_id
+            LEFT JOIN authors a ON pa.author_id = a.id
+            WHERE (
+                to_tsvector('english', COALESCE(p.title, '') || ' ' || COALESCE(p.abstract, ''))
+                @@ to_tsquery('english', :tsquery)
+                OR 
+                to_tsvector('english', COALESCE(p.full_text_content, ''))
+                @@ to_tsquery('english', :tsquery)
+                OR 
+                EXISTS (
+                    SELECT 1 FROM text_sections ts 
+                    WHERE ts.publication_id = p.id 
+                      AND to_tsvector('english', ts.content) @@ to_tsquery('english', :tsquery)
+                )
+                OR
+                EXISTS (
+                    SELECT 1 FROM publication_keywords pk
+                    JOIN keywords k ON pk.keyword_id = k.id
+                    WHERE pk.publication_id = p.id 
+                      AND to_tsvector('english', k.keyword) @@ to_tsquery('english', :tsquery)
+                )
+                OR
+                EXISTS (
+                    SELECT 1 FROM publication_mesh_terms pmt
+                    JOIN mesh_terms mt ON pmt.mesh_term_id = mt.id
+                    WHERE pmt.publication_id = p.id 
+                      AND to_tsvector('english', mt.term) @@ to_tsquery('english', :tsquery)
+                )
+            )
             """
             
             params = {
@@ -240,18 +383,20 @@ class HybridSearchEngine:
             
             # Add filters
             if year_from:
-                sql += " AND EXTRACT(YEAR FROM publication_date) >= :year_from"
+                sql += " AND EXTRACT(YEAR FROM p.publication_date) >= :year_from"
                 params["year_from"] = year_from
             
             if year_to:
-                sql += " AND EXTRACT(YEAR FROM publication_date) <= :year_to"
+                sql += " AND EXTRACT(YEAR FROM p.publication_date) <= :year_to"
                 params["year_to"] = year_to
             
             if journal:
-                sql += " AND LOWER(journal) LIKE LOWER(:journal)"
+                sql += " AND LOWER(p.journal) LIKE LOWER(:journal)"
                 params["journal"] = f"%{journal}%"
             
             sql += """
+            GROUP BY p.id, p.pmcid, p.title, p.abstract, p.journal, p.publication_date,
+                     p.doi, p.full_text_content
             ORDER BY rank DESC
             LIMIT :limit OFFSET :offset
             """
@@ -260,7 +405,7 @@ class HybridSearchEngine:
             
             search_results = []
             for row in result:
-                search_results.append(SearchResult(
+                search_result = SearchResult(
                     pmcid=row.pmcid,
                     title=row.title,
                     abstract=row.abstract[:300] + '...' if row.abstract and len(row.abstract) > 300 else row.abstract,
@@ -270,7 +415,17 @@ class HybridSearchEngine:
                     search_method="fulltext",
                     full_text_snippet=row.snippet,
                     match_type="exact_match"
-                ))
+                )
+                
+                # Enhanced metadata
+                search_result.doi = row.doi
+                search_result.authors = row.authors
+                search_result.matching_sections = row.matching_sections
+                search_result.keywords_text = row.keywords_text
+                search_result.mesh_terms_text = row.mesh_terms_text
+                search_result.has_full_text = bool(row.full_text_content and len(row.full_text_content) > 100)
+                
+                search_results.append(search_result)
             
             return search_results
     

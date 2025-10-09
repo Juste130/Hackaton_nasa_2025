@@ -218,8 +218,9 @@ async def get_full_graph(
         cache_key = cache._generate_key('api:graph:full', limit=limit, include_isolated=include_isolated)
         cached_result = cache.get(cache_key)
         if cached_result is not None:
-            logger.debug(f" Using cached full graph (limit={limit}, isolated={include_isolated})")
+            logger.info(f" Using cached full graph (limit={limit}, isolated={include_isolated})")
             return cached_result
+        logger.info(f" Fetching full graph from Neo4j (limit={limit}, isolated={include_isolated})...")
         
         with neo4j_client.driver.session() as session:
             # Get nodes with their degree (connection count)

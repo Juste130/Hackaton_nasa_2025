@@ -24,7 +24,7 @@ class RedisCache:
     def __init__(self):
         """Initialize Redis connection"""
         self.redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-        self.default_ttl = int(os.environ.get("CACHE_TTL", "3600"))  # 1 hour default
+        self.default_ttl = int(os.environ.get("CACHE_TTL", "36000"))  # 10 hours default
         self.enabled = os.environ.get("REDIS_ENABLED", "true").lower() == "true"
         
         self.client = None
@@ -270,3 +270,7 @@ def cache_neo4j_query(prefix: str, ttl: Optional[int] = None):
             return sync_wrapper
     
     return decorator
+
+
+test=RedisCache()
+print(test.get_stats())
