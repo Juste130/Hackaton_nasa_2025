@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_AI_API_URL || 'http://locahost:8000/';
+const API_BASE = process.env.REACT_APP_AI_API_URL || 'http://localhost:8000/';
 
 class ChatApiService {
   constructor() {

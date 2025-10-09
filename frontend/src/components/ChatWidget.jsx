@@ -160,6 +160,24 @@ const ChatWidget = () => {
                   )}
                 </div>
               ))}
+
+              {/* Suggestions intégrées - juste après le message d'accueil */}
+              {messages.length <= 2 && !isLoading && (
+                <div className="inline-suggestions">
+                  <p className="suggestions-title">Try asking about:</p>
+                  <div className="suggestion-chips">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        className="suggestion-chip"
+                        onClick={() => handleSuggestionClick(question)}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Loading indicator */}
               {isLoading && (
@@ -177,24 +195,6 @@ const ChatWidget = () => {
               
               <div ref={messagesEndRef} />
             </div>
-
-            {/* Suggestions - only show for new conversations */}
-            {messages.length <= 2 && !isLoading && (
-              <div className="chat-suggestions">
-                <p>Try asking about:</p>
-                <div className="suggestion-chips">
-                  {suggestedQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      className="suggestion-chip"
-                      onClick={() => handleSuggestionClick(question)}
-                    >
-                      {question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Input */}
             <form onSubmit={handleSendMessage} className="chat-input-form">
