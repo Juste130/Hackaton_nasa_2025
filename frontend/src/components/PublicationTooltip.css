@@ -1,0 +1,499 @@
+:root {
+  --primary: #3498db;
+  --text-dark: #2c3e50;
+  --text-light: #ecf0f1;
+  --text-secondary: #7f8c8d;
+  --error: #e74c3c;
+}
+
+.publication-tooltip {
+  position: fixed;
+  /* La position (left/top) est donnée en inline style par le composant */
+  z-index: 10000; /* au-dessus de l’overlay */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border: 2px solid var(--primary);
+  width: 500px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  animation: tooltipSlideIn 0.2s ease-out;
+  overflow: hidden;
+}
+
+/* Header fixe */
+.tooltip-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.2rem;
+  padding-right: 3rem; /* espace pour le bouton close */
+  flex-shrink: 0;
+  border-radius: 12px 12px 0 0;
+  position: relative;
+}
+
+/* Bouton de fermeture */
+.tooltip-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #999;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.tooltip-close:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.1);
+  transform: rotate(90deg);
+}
+
+/* Zone de contenu scrollable */
+.tooltip-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 1.2rem 1.2rem 1.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: #bbb transparent;
+}
+
+.tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tooltip-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.tooltip-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+@keyframes tooltipSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Styles du header */
+.tooltip-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.tooltip-journal,
+.tooltip-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.tooltip-journal:last-child,
+.tooltip-date:last-child {
+  margin-bottom: 0;
+}
+
+/* Sections du contenu */
+.tooltip-authors {
+  background: rgba(52, 152, 219, 0.08);
+  padding: 0.8rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.authors-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.authors-list {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.author-name {
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.author-more {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.tooltip-abstract {
+  margin-bottom: 1rem;
+}
+
+.abstract-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.abstract-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: justify;
+}
+
+/* Loading State */
+.tooltip-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  min-height: 200px;
+}
+
+.loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(52, 152, 219, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.tooltip-loading p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Error State */
+.tooltip-error {
+  padding: 2rem;
+  text-align: center;
+}
+
+.tooltip-error p {
+  color: var(--error);
+  margin: 0.5rem 0;
+}
+
+.error-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+/* Entities */
+.tooltip-entities {
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  background: rgba(52, 152, 219, 0.03);
+  border-radius: 8px;
+}
+
+.entity-group {
+  margin-bottom: 0.7rem;
+}
+
+.entity-group:last-child {
+  margin-bottom: 0;
+}
+
+.entity-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 0.4rem 0;
+}
+
+.entity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.entity-tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  transition: transform 0.2s;
+}
+
+.entity-tag:hover {
+  transform: translateY(-1px);
+}
+
+.organism-tag {
+  background: #27ae60;
+}
+
+.phenomenon-tag {
+  background: #e74c3c;
+}
+
+/* MeSH Terms */
+.tooltip-mesh {
+  margin-bottom: 1rem;
+  padding: 0.8rem;
+  background: rgba(52, 152, 219, 0.03);
+  border-radius: 8px;
+}
+
+.mesh-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 0.4rem 0;
+}
+
+.mesh-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mesh-tag {
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: #95a5a6;
+  color: white;
+  transition: all 0.2s;
+}
+
+.mesh-tag.major {
+  background: #f39c12;
+  font-weight: 600;
+}
+
+.mesh-tag:hover {
+  transform: translateY(-1px);
+}
+
+/* IDs */
+.tooltip-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+}
+
+.tooltip-id {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.tooltip-id strong {
+  color: var(--text-dark);
+  margin-right: 0.3rem;
+}
+
+/* Links */
+.tooltip-links {
+  padding-top: 0.8rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.links-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  color: var(--text-dark);
+}
+
+.links-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+  text-decoration: none;
+  color: white;
+}
+
+.link-icon {
+  font-size: 0.9rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .publication-tooltip {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 85vh !important;
+    border-radius: 8px;
+  }
+
+  .tooltip-header {
+    padding: 1rem;
+    padding-right: 3rem;
+  }
+
+  .tooltip-content {
+    padding: 0 1rem 1rem 1rem;
+  }
+
+  .tooltip-title {
+    font-size: 1rem;
+  }
+
+  .links-buttons {
+    flex-direction: column;
+  }
+
+  .link-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .publication-tooltip {
+    width: 98vw !important;
+    max-height: 90vh !important;
+  }
+
+  .tooltip-header {
+    padding: 0.8rem;
+    padding-right: 2.5rem;
+  }
+
+  .tooltip-content {
+    padding: 0 0.8rem 0.8rem 0.8rem;
+  }
+
+  .tooltip-close {
+    top: 0.6rem;
+    right: 0.6rem;
+    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Dark mode */
+.app.dark .publication-tooltip {
+  background: #1e1e1e;
+  border-color: #3498db;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.app.dark .tooltip-header {
+  background: #1e1e1e;
+  border-bottom-color: #333;
+}
+
+.app.dark .tooltip-title {
+  color: var(--text-light);
+}
+
+.app.dark .entity-label,
+.app.dark .mesh-label,
+.app.dark .abstract-label,
+.app.dark .links-label {
+  color: var(--text-light);
+}
+
+.app.dark .author-name {
+  color: var(--text-light);
+}
+
+.app.dark .tooltip-authors {
+  background: rgba(52, 152, 219, 0.15);
+}
+
+.app.dark .tooltip-entities,
+.app.dark .tooltip-mesh {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app.dark .tooltip-ids {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app.dark .tooltip-id strong {
+  color: #bbb;
+}
+
+.app.dark .tooltip-close {
+  color: #bbb;
+}
+
+.app.dark .tooltip-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app.dark .tooltip-links {
+  border-top-color: #333;
+}

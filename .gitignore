@@ -1,0 +1,16 @@
+*.py
+.env
+*.db
+*.txt
+pip
+.venv/
+__pycache__/
+AI/
+strategy.md
+challenge.md
+frontend/node_modules/
+backend/node_modules/
+frontend/.env
+backend/.env
+*.md
+.env

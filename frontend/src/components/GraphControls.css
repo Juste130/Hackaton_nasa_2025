@@ -1,0 +1,332 @@
+/* src/components/GraphControls.css */
+.graph-controls {
+  width: 100%;
+  height: 100%;
+  background: white;
+  padding: 1rem;
+  overflow-y: auto;
+  overflow-x: hidden; /* Éviter le débordement horizontal */
+  box-sizing: border-box;
+}
+
+.control-group {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.control-group h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.form-group input, 
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+/* Label avec actions */
+.label-with-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.label-with-actions label {
+  margin: 0;
+  flex: 1;
+}
+
+/* Boutons de type lien */
+.btn-link {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.btn-link:hover {
+  color: #2980b9;
+}
+
+/* Boutons standards */
+.btn {
+  border: none;
+  padding: 0.7rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s;
+  box-sizing: border-box;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #7f8c8d;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Checkbox controls */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.3rem;
+  width: 100%;
+}
+
+.checkbox-item input {
+  width: auto;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.checkbox-item label {
+  flex: 1;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.type-count {
+  color: #666;
+  font-size: 0.8rem;
+  margin-left: 0.3rem;
+}
+
+/* Date range controls */
+.date-range {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-label {
+  min-width: 50px;
+  font-size: 0.85rem;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.date-input {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.date-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.date-shortcuts .btn-link {
+  font-size: 0.75rem;
+  padding: 0.2rem 0;
+}
+
+/* Presets pour les limites */
+.limit-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.btn-preset {
+  background: #ecf0f1;
+  border: 1px solid #bdc3c7;
+  padding: 0.3rem 0.6rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 40px;
+  text-align: center;
+}
+
+.btn-preset:hover {
+  background: #d5dbdb;
+}
+
+.btn-preset.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+/* Actions des filtres */
+.filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.filter-actions .btn {
+  margin: 0;
+  width: 100%;
+}
+
+/* Actions rapides */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quick-actions .btn {
+  margin: 0;
+  width: 100%;
+}
+
+/* Statistiques */
+.stats {
+  background: #ecf0f1;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.stats h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.stats h5 {
+  margin: 0.7rem 0 0.3rem 0;
+  color: #34495e;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.stats-section {
+  margin-top: 0.7rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #d5dbdb;
+}
+
+.search-query {
+  font-style: italic;
+  color: #7f8c8d;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .graph-controls {
+    width: 100%;
+    max-height: 400px;
+  }
+  
+  .date-range {
+    flex-direction: column;
+  }
+  
+  .checkbox-group {
+    flex-direction: column;
+  }
+  
+  .limit-presets {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .graph-controls {
+    padding: 0.7rem;
+  }
+  
+  .control-group {
+    padding: 0.7rem;
+    margin-bottom: 1rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8rem;
+  }
+}
