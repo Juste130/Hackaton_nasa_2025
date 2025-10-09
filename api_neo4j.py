@@ -13,6 +13,7 @@ from search_engine import HybridSearchEngine, SearchMode
 from neo4j.time import DateTime as Neo4jDateTime
 from datetime import datetime
 import asyncio
+from redis_cache import get_cache
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 neo4j_client = Neo4jClient()
 analytics = KnowledgeGraphAnalytics(neo4j_client)
 search_engine = HybridSearchEngine()
+cache = get_cache()
 
 router = APIRouter(prefix="/api/graph", tags=["Knowledge Graph"])
 
@@ -212,6 +214,13 @@ async def get_full_graph(
 ):
     """Get full knowledge graph with optional limit"""
     try:
+        # Cache pour 15 minutes (900 secondes)
+        cache_key = cache._generate_key('api:graph:full', limit=limit, include_isolated=include_isolated)
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.debug(f" Using cached full graph (limit={limit}, isolated={include_isolated})")
+            return cached_result
+        
         with neo4j_client.driver.session() as session:
             # Get nodes with their degree (connection count)
             isolation_filter = "WHERE degree > 0" if not include_isolated else ""
@@ -303,7 +312,12 @@ async def get_full_graph(
             
             # Serialize the entire response
             result = GraphData(nodes=nodes, edges=edges, stats=stats)
-            return serialize_neo4j_types(result.dict())
+            serialized_result = serialize_neo4j_types(result.dict())
+            
+            # Cache pour 15 minutes
+            cache.set(cache_key, serialized_result, ttl=900)
+            
+            return serialized_result
     
     except Exception as e:
         logger.error(f"Full graph error: {e}", exc_info=True)
@@ -661,6 +675,13 @@ async def get_node_details(
 async def get_graph_stats():
     """Get comprehensive graph statistics"""
     try:
+        # Cache pour 10 minutes (600 secondes)
+        cache_key = cache._generate_key('api:graph:stats')
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.debug(" Using cached graph stats")
+            return cached_result
+        
         stats = neo4j_client.get_stats()
         
         # Add analytics data
@@ -693,7 +714,12 @@ async def get_graph_stats():
             }
         }
         
-        return serialize_neo4j_types(result)
+        serialized_result = serialize_neo4j_types(result)
+        
+        # Cache pour 10 minutes
+        cache.set(cache_key, serialized_result, ttl=600)
+        
+        return serialized_result
     
     except Exception as e:
         logger.error(f"Stats error: {e}", exc_info=True)

@@ -444,8 +444,9 @@ class GenericRAGAssistant(dspy.Module):
     def __init__(self, llm: Optional[dspy.LM] = None):
         super().__init__()
         
-        if llm:
-            dspy.settings.configure(lm=llm)
+        # Remove the configure call - use context instead
+        # if llm:
+        #     dspy.settings.configure(lm=llm)
         
         logger.info("🤖 Configuring ReAct agent with tools...")
         class GenericRAGSignature(dspy.Signature):

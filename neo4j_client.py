@@ -12,6 +12,7 @@ from neo4j_schema import (
     get_cypher_create_indexes,
     get_cypher_create_fulltext_indexes
 )
+from redis_cache import get_cache
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class Neo4jClient:
             NEO4J_URI,
             auth=(NEO4J_USERNAME, NEO4J_PASSWORD)
         )
+        self.cache = get_cache()
         logger.info(f" Connected to Neo4j at {NEO4J_URI}")
     
     def close(self):
@@ -34,14 +36,22 @@ class Neo4jClient:
     
     def verify_connectivity(self):
         """Test connection"""
+        # Cache pour 60 secondes
+        cache_key = self.cache._generate_key('neo4j:connectivity')
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+        
         try:
             with self.driver.session() as session:
                 result = session.run("RETURN 1 AS test")
                 assert result.single()["test"] == 1
                 logger.info(" Neo4j connectivity verified")
+                self.cache.set(cache_key, True, ttl=60)
                 return True
         except ServiceUnavailable as e:
             logger.error(f" Cannot connect to Neo4j: {e}")
+            self.cache.set(cache_key, False, ttl=60)
             return False
     
     def initialize_schema(self):
@@ -85,6 +95,13 @@ class Neo4jClient:
     
     def get_stats(self) -> Dict[str, int]:
         """Get database statistics"""
+        # Cache pour 5 minutes (300 secondes)
+        cache_key = self.cache._generate_key('neo4j:stats')
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            logger.debug(" Using cached Neo4j stats")
+            return cached
+        
         with self.driver.session() as session:
             result = session.run("""
                 MATCH (n)
@@ -103,12 +120,17 @@ class Neo4jClient:
             
             rel_stats = {record["rel_type"]: record["count"] for record in result}
             
-            return {
+            stats_result = {
                 "nodes": stats,
                 "relationships": rel_stats,
                 "total_nodes": sum(stats.values()),
                 "total_relationships": sum(rel_stats.values())
             }
+            
+            # Cache pour 5 minutes
+            self.cache.set(cache_key, stats_result, ttl=300)
+            
+            return stats_result
     
     def print_stats(self):
         """Pretty print database stats"""

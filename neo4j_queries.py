@@ -6,6 +6,7 @@ from neo4j_client import Neo4jClient
 from typing import List, Dict, Optional
 import logging
 import json
+from redis_cache import get_cache
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,9 +17,17 @@ class KnowledgeGraphAnalytics:
     
     def __init__(self, client: Neo4jClient):
         self.client = client
+        self.cache = get_cache()
     
     def top_studied_organisms(self, limit: int = 15) -> List[Dict]:
         """Most studied organisms across all publications"""
+        # Cache pour 1 heure (3600 secondes)
+        cache_key = self.cache._generate_key('neo4j:top_organisms', limit=limit)
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            logger.debug(" Using cached top_studied_organisms")
+            return cached
+        
         query = """
         MATCH (p:Publication)-[:STUDIES]->(o:Organism)
         RETURN o.name AS organism, 
@@ -31,10 +40,22 @@ class KnowledgeGraphAnalytics:
         
         with self.client.driver.session() as session:
             result = session.run(query, limit=limit)
-            return [dict(record) for record in result]
+            data = [dict(record) for record in result]
+            
+            # Cache pour 1 heure
+            self.cache.set(cache_key, data, ttl=3600)
+            
+            return data
     
     def top_investigated_phenomena(self, limit: int = 15) -> List[Dict]:
         """Most investigated biological phenomena"""
+        # Cache pour 1 heure
+        cache_key = self.cache._generate_key('neo4j:top_phenomena', limit=limit)
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            logger.debug(" Using cached top_investigated_phenomena")
+            return cached
+        
         query = """
         MATCH (p:Publication)-[:INVESTIGATES]->(ph:Phenomenon)
         RETURN ph.name AS phenomenon,
@@ -46,13 +67,24 @@ class KnowledgeGraphAnalytics:
         
         with self.client.driver.session() as session:
             result = session.run(query, limit=limit)
-            return [dict(record) for record in result]
+            data = [dict(record) for record in result]
+            
+            self.cache.set(cache_key, data, ttl=3600)
+            
+            return data
     
     def research_gaps_by_system(self) -> List[Dict]:
         """
         Biological systems with fewest studies (potential research gaps)
         Lower studies_per_phenomenon = potential gap
         """
+        # Cache pour 2 heures (7200 secondes)
+        cache_key = self.cache._generate_key('neo4j:research_gaps')
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            logger.debug(" Using cached research_gaps_by_system")
+            return cached
+        
         query = """
         MATCH (ph:Phenomenon)
         WITH ph.system AS system, count(ph) AS phenomenon_count
@@ -67,7 +99,11 @@ class KnowledgeGraphAnalytics:
         
         with self.client.driver.session() as session:
             result = session.run(query)
-            return [dict(record) for record in result]
+            data = [dict(record) for record in result]
+            
+            self.cache.set(cache_key, data, ttl=7200)
+            
+            return data
     
     def spaceflight_vs_simulation(self) -> List[Dict]:
         """Compare spaceflight vs ground simulation studies"""
@@ -88,6 +124,13 @@ class KnowledgeGraphAnalytics:
         Find all phenomena studied for a specific organism
         Example: organism_name = "mouse" or "Mus musculus"
         """
+        # Cache pour 30 minutes (1800 secondes)
+        cache_key = self.cache._generate_key('neo4j:organism_network', organism=organism_name)
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f" Using cached organism_phenomenon_network for {organism_name}")
+            return cached
+        
         query = """
         MATCH (p:Publication)-[:STUDIES]->(o:Organism)
         WHERE toLower(o.name) CONTAINS toLower($organism_name) 
@@ -100,7 +143,11 @@ class KnowledgeGraphAnalytics:
         
         with self.client.driver.session() as session:
             result = session.run(query, organism_name=organism_name)
-            return [dict(record) for record in result]
+            data = [dict(record) for record in result]
+            
+            self.cache.set(cache_key, data, ttl=1800)
+            
+            return data
     
     def mission_platform_distribution(self) -> List[Dict]:
         """Distribution of studies across space missions/platforms"""

@@ -49,8 +49,9 @@ class ArticleSummarizer(dspy.Module):
     def __init__(self, llm: Optional[dspy.LM] = None):
         super().__init__()
         
-        if llm:
-            dspy.settings.configure(lm=llm)
+        # Remove the configure call - use global configuration
+        # if llm:
+        #     dspy.settings.configure(lm=llm)
         
         # Use Chain of Thought for better reasoning
         self.summarize = dspy.ChainOfThought(ScientificSummary)

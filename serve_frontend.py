@@ -29,15 +29,15 @@ def serve_frontend(port=3000):
             super().end_headers()
     
     with socketserver.TCPServer(("", port), CORSRequestHandler) as httpd:
-        print(f"🌐 Frontend server running at http://localhost:{port}")
-        print(f"📁 Serving from: {frontend_dir}")
-        print("📊 Make sure your API is running on http://localhost:8000")
+        print(f" Frontend server running at http://localhost:{port}")
+        print(f" Serving from: {frontend_dir}")
+        print(" Make sure your API is running on http://localhost:8000")
         print("\nPress Ctrl+C to stop")
         
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\n👋 Frontend server stopped")
+            print("\n Frontend server stopped")
 
 if __name__ == "__main__":
     serve_frontend()
