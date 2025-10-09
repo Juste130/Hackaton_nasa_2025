@@ -1008,17 +1008,3 @@ ENVIRONMENT=production
 
 ---
 
-## 🔐 Security Notes
-
-### API Security
-- No authentication required for read operations
-- Session isolation prevents data leakage
-- Input validation on all endpoints
-- CORS enabled for frontend integration
-
-### Data Privacy
-- Sessions automatically expire after 30 days
-- No personal data stored beyond session metadata
-- Query content not logged in production
-
----
