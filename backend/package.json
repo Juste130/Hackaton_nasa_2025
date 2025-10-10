@@ -5,14 +5,20 @@
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "setup-redis": "chmod +x setup-redis.sh && ./setup-redis.sh",
+    "cache:flush": "npx ts-node src/cache-manager.ts flush",
+    "cache:test": "npx ts-node src/cache-manager.ts test",
+    "cache:stats": "npx ts-node src/cache-manager.ts stats",
+    "cache:help": "npx ts-node src/cache-manager.ts help"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "prisma": "^6.16.3"
+    "prisma": "^6.16.3",
+    "redis": "^4.6.12"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
