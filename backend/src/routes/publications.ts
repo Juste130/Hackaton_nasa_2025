@@ -8,7 +8,111 @@ const router = Router();
 // URL de l'API Neo4j (Python sur port 8000)
 const NEO4J_API_URL = process.env.NEO4J_API_URL || "http://localhost:8000";
 
-// GET /api/publications
+// GET /api/publications/count - Pour connaître le total des publications
+router.get("/publications/count", async (req, res) => {
+  const { organism, phenomenon } = req.query as Record<string, string | undefined>;
+  
+  const filters: any = {};
+
+  // Même logique de filtrage que la route principale
+  if (organism || phenomenon) {
+    try {
+      const filterRequest = {
+        node_types: ["Publication"],
+        filters: {
+          organisms: organism ? [organism] : [],
+          phenomena: phenomenon ? [phenomenon] : [],
+        },
+        limit: 1000, // Augmentez la limite pour les comptes
+      };
+
+      const response = await axios.post(
+        `${NEO4J_API_URL}/api/graph/filter`,
+        filterRequest
+      );
+
+      const nodes = response.data.nodes || [];
+      const pmcids = nodes
+        .filter((node: any) => node.label === "Publication")
+        .map((node: any) => node.properties.pmcid)
+        .filter(Boolean);
+
+      if (pmcids.length > 0) {
+        filters.pmcid = { in: pmcids };
+      } else {
+        return res.json({ count: 0 });
+      }
+    } catch (error) {
+      console.error("Error filtering via Neo4j:", error);
+      return res.status(500).json({ error: "Failed to apply graph filters" });
+    }
+  }
+
+  try {
+    const count = await prisma.publications.count({ where: filters });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to count publications" });
+  }
+});
+
+// GET /api/publications/ids - Récupérer seulement les IDs pour les filtres
+router.get("/publications/ids", async (req, res) => {
+  const { organism, phenomenon, limit = 1000 } = req.query as Record<string, string | undefined>;
+
+  const filters: any = {};
+
+  if (organism || phenomenon) {
+    try {
+      const filterRequest = {
+        node_types: ["Publication"],
+        filters: {
+          organisms: organism ? [organism] : [],
+          phenomena: phenomenon ? [phenomenon] : [],
+        },
+        limit: Number(limit),
+      };
+
+      const response = await axios.post(
+        `${NEO4J_API_URL}/api/graph/filter`,
+        filterRequest
+      );
+
+      const nodes = response.data.nodes || [];
+      const pmcids = nodes
+        .filter((node: any) => node.label === "Publication")
+        .map((node: any) => node.properties.pmcid)
+        .filter(Boolean);
+
+      if (pmcids.length > 0) {
+        filters.pmcid = { in: pmcids };
+      } else {
+        return res.json([]);
+      }
+    } catch (error) {
+      console.error("Error filtering via Neo4j:", error);
+      return res.status(500).json({ error: "Failed to apply graph filters" });
+    }
+  }
+
+  try {
+    const publications = await prisma.publications.findMany({
+      where: filters,
+      select: {
+        id: true,
+        publication_date: true,
+      },
+      orderBy: { publication_date: "desc" },
+      take: Number(limit) || 1000,
+    });
+    
+    res.json(publications);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch publication IDs" });
+  }
+});
+
+// GET /api/publications - Route principale avec pagination
 router.get("/publications", async (req, res) => {
   const { title, author, journal, from, to, skip, take, organism, phenomenon } = req.query as Record<string, string | undefined>;
 
@@ -35,7 +139,7 @@ router.get("/publications", async (req, res) => {
           organisms: organism ? [organism] : [],
           phenomena: phenomenon ? [phenomenon] : [],
         },
-        limit: 30,
+        limit: 1000, // Augmenté pour mieux gérer les filtres
       };
 
       const response = await axios.post(
@@ -48,8 +152,6 @@ router.get("/publications", async (req, res) => {
         .filter((node: any) => node.label === "Publication")
         .map((node: any) => node.properties.pmcid)
         .filter(Boolean);
-      console.log("Ok");
-      console.log(pmcids);
 
       if (pmcids.length > 0) {
         filters.pmcid = { in: pmcids };
@@ -107,7 +209,6 @@ router.get("/publications", async (req, res) => {
             is_major_topic: 'desc' // Priorise les topics majeurs
           },
           select: {
-            
             mesh_terms: {
               select: {
                 id: true,
