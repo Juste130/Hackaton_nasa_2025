@@ -80,6 +80,7 @@ export const useD3Graph = (containerRef, data, options = {}) => {
     // Clone data to avoid mutation
     const nodes = data.nodes.map(d => ({ ...d }));
     const edges = (data.edges || data.links || []).map(d => ({ ...d }));
+    console.log(nodes);
 
     // Create force simulation
     const simulation = d3.forceSimulation(nodes)

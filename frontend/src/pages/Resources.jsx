@@ -63,33 +63,7 @@ const Resources = () => {
           ))}
         </div>
 
-        <section className="api-section">
-          <h2>🔧 API & Développement</h2>
-          <div className="api-card">
-            <h3>API du Moteur de Connaissances</h3>
-            <p>
-              Notre API REST permet aux développeurs d'intégrer les fonctionnalités 
-              de recherche et d'analyse dans leurs propres applications.
-            </p>
-            <div className="api-endpoints">
-              <div className="endpoint">
-                <code>GET /api/search?q=microgravity</code>
-                <span>Recherche sémantique</span>
-              </div>
-              <div className="endpoint">
-                <code>POST /api/chat</code>
-                <span>Interface conversationnelle</span>
-              </div>
-              <div className="endpoint">
-                <code>GET /api/publications</code>
-                <span>Liste des publications</span>
-              </div>
-            </div>
-            <button className="btn btn-primary">
-              📚 Voir la Documentation
-            </button>
-          </div>
-        </section>
+        
       </div>
     </div>
   );

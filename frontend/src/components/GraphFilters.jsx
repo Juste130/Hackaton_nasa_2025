@@ -12,6 +12,8 @@ const GraphFilters = ({
 }) => {
   const [organismSearch, setOrganismSearch] = useState("");
   const [phenomenonSearch, setPhenomenonSearch] = useState("");
+  const [customOrganism, setCustomOrganism] = useState("");
+  const [customPhenomenon, setCustomPhenomenon] = useState("");
 
   const filteredOrganisms = organisms.filter(org => 
     org.name?.toLowerCase().includes(organismSearch.toLowerCase()) ||
@@ -40,13 +42,6 @@ const GraphFilters = ({
               Organism
             </label>
             <div className="filter-select-wrapper">
-              <input
-                type="text"
-                className="filter-search"
-                placeholder="Search organisms..."
-                value={organismSearch}
-                onChange={(e) => setOrganismSearch(e.target.value)}
-              />
               <select
                 className="filter-select"
                 value={selectedOrganism}
@@ -71,13 +66,6 @@ const GraphFilters = ({
               Phenomenon
             </label>
             <div className="filter-select-wrapper">
-              <input
-                type="text"
-                className="filter-search"
-                placeholder="Search phenomena..."
-                value={phenomenonSearch}
-                onChange={(e) => setPhenomenonSearch(e.target.value)}
-              />
               <select
                 className="filter-select"
                 value={selectedPhenomenon}

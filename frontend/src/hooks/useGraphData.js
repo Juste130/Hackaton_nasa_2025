@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import graphApi from "../services/graphApi";
 
 const useGraphData = () => {
@@ -6,51 +6,82 @@ const useGraphData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchGraph = async (params = {}) => {
+  const fetchGraph = useCallback(async (params = {}) => {
     console.log('🚀 useGraphData: Starting to fetch graph with params:', params);
     
     try {
       setLoading(true);
       setError(null);
 
-      const response = await graphApi.getFullGraph(params);
-      console.log("✅ useGraphData: Fetched graph data:", response);
+      let response;
 
-      // ✅ Transformer "edges" en "links" si nécessaire
+      // 🔥 LOGIQUE DE FILTRAGE
+      const hasFilters = params.organism || params.phenomenon;
+      console.log('🔍 Filter check:', { 
+        hasFilters, 
+        organism: params.organism, 
+        phenomenon: params.phenomenon 
+      });
+
+      if (hasFilters) {
+        console.log('🎯 Using FILTER mode');
+        
+        const filterData = {
+          node_types: ["Publication", "Organism", "Phenomenon"],
+          filters: {
+            organisms: params.organism ? [params.organism] : [],
+            phenomena: params.phenomenon ? [params.phenomenon] : [],
+          },
+          limit: params.limit || 100
+        };
+
+        response = await graphApi.filterGraph(filterData);
+      } else {
+        console.log('📊 Using FULL graph mode');
+        response = await graphApi.getFullGraph(params);
+      }
+
+      console.log("✅ Graph data received:", {
+        nodes: response.nodes?.length,
+        links: response.links?.length || response.edges?.length
+      });
+
+      // Transformation des données
       const transformedData = {
-        nodes: response.nodes || [],
-        links: response.links || response.edges || []  // Support both formats
+        nodes: (response.nodes || []).map(node => {
+          // Pour les publications, s'assurer d'avoir le titre dans properties
+          if (node.label === 'Publication' || node.type === 'Publication') {
+            return {
+              ...node,
+              properties: {
+                ...node.properties,
+                // Extraire le titre de différents champs possibles
+                title: node.properties?.title || node.title || node.name || node.id
+              }
+            };
+          }
+          return node;
+        }),
+        links: response.links || response.edges || []
       };
 
-      // Valider la structure des données
-      if (!transformedData.nodes || !transformedData.links) {
-        console.error('❌ Invalid graph data structure:', response);
-        throw new Error("Invalid graph data structure");
-      }
+       // 🔍 DEBUG: Vérifier les nœuds Publication transformés
 
-      // S'assurer que nodes et links sont des tableaux
-      const validatedData = {
-        nodes: Array.isArray(transformedData.nodes) ? transformedData.nodes : [],
-        links: Array.isArray(transformedData.links) ? transformedData.links : [],
-      };
+      const publicationNodes = transformedData.nodes.filter(n => 
+        n.label === 'Publication' || n.type === 'Publication'
+      );
+      console.log('📚 Transformed Publication nodes:', publicationNodes);
 
-      console.log(`✅ Validated graph data: ${validatedData.nodes.length} nodes, ${validatedData.links.length} links`);
+      setGraphData(transformedData);
       
-      // Vérifier que les données ne sont pas vides
-      if (validatedData.nodes.length === 0) {
-        console.warn('⚠️ No nodes in graph data');
-      }
-      
-      setGraphData(validatedData);
     } catch (err) {
-      console.error("❌ useGraphData: Error fetching graph:", err);
+      console.error("❌ Error fetching graph:", err);
       setError(err.message || "Failed to load graph");
-      // Définir des données vides en cas d'erreur
       setGraphData({ nodes: [], links: [] });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return {
     graphData,

@@ -6,6 +6,7 @@ import Explorer from './pages/Explorer';
 import About from './pages/About';
 import Resources from './pages/Resources';
 import { ChatProvider } from './context/ChatContext'
+import { PublicationsProvider } from './context/PublicationsContext'
 import './App.css';
 
 function App() {
@@ -22,20 +23,22 @@ function App() {
   };
 
   return (
-    <ChatProvider>
-    <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
-      <Header 
-        currentPage={currentPage} 
-        onNavigate={setCurrentPage}
-        isDarkMode={isDarkMode}
-        onThemeToggle={() => setIsDarkMode(!isDarkMode)}
-      />
-      <main className="main-content">
-            {renderPage()}
-        </main>
-        <ChatWidget />
-    </div>
-    </ChatProvider>
+    <PublicationsProvider>
+      <ChatProvider>
+      <div className={`app ${isDarkMode ? 'dark' : 'light'}`}>
+        <Header 
+          currentPage={currentPage} 
+          onNavigate={setCurrentPage}
+          isDarkMode={isDarkMode}
+          onThemeToggle={() => setIsDarkMode(!isDarkMode)}
+        />
+        <main className="main-content">
+              {renderPage()}
+          </main>
+          <ChatWidget />
+      </div>
+      </ChatProvider>
+    </PublicationsProvider>
   );
 }
 

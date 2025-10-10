@@ -9,7 +9,7 @@ import { filters } from "../data/mockData";
 import { useExplorerFilters } from "../hooks/useExplorerFilters";
 import useGraphData from "../hooks/useGraphData"; // Import par défaut
 import { useGraphFilters } from "../hooks/useGraphFilters";
-import { usePublications } from "../hooks/usePublications";
+import { useCachedPublications } from "../hooks/useCachedPublications";
 import { useSelection } from "../hooks/useSelection";
 import "./Explorer.css";
 
@@ -24,8 +24,16 @@ const Explorer = () => {
   // Charger les filtres depuis Neo4j
   const { organisms, phenomena, loading: filtersLoading } = useGraphFilters();
 
-  const { publications, loadingPublications, currentYear, minYear, maxYear } =
-    usePublications(selectedOrganism, selectedPhenomenon);
+  const { 
+    publications, 
+    loadingPublications, 
+    currentYear, 
+    minYear, 
+    maxYear,
+    totalCount,
+    allPublicationsCount,
+    cacheState 
+  } = useCachedPublications(selectedOrganism, selectedPhenomenon);
   const {
     searchQuery,
     setSearchQuery,
@@ -64,9 +72,18 @@ const Explorer = () => {
   // Charger le graphe au montage
   useEffect(() => {
     if (activeView === "graph") {
-      fetchGraph({ limit: 100 });
+      console.log('🔄 Loading graph with filters:', {
+        organism: selectedOrganism,
+        phenomenon: selectedPhenomenon
+      });
+      
+      fetchGraph({ 
+        limit: 100,
+        organism: selectedOrganism, // 🔥 AJOUT des filtres
+        phenomenon: selectedPhenomenon // 🔥 AJOUT des filtres
+      });
     }
-  }, [activeView]);
+  }, [activeView, selectedOrganism, selectedPhenomenon]); // 🔥 AJOUT des dépendances
 
   const selectedPubData = publications.filter((pub) =>
     selectedPublications.includes(pub.id)
@@ -82,8 +99,10 @@ const Explorer = () => {
                 graphData?.links?.length || 0
               } edges`
             : loadingPublications
-            ? "Loading publications..."
-            : `${filteredPublications.length} publications found • ${selectedPublications.length} selected`}
+            ? `📥 Pre-loading publications... (${allPublicationsCount} loaded so far)`
+            : cacheState.error
+            ? `❌ Error: ${cacheState.error}`
+            : `${totalCount} of ${allPublicationsCount} publications • ${selectedPublications?.length} selected`}
         </p>
       </div>
 
@@ -235,7 +254,7 @@ const Explorer = () => {
             </div>
 
             {/* Selection Controls - seulement pour Cards et Table */}
-            {activeView !== "graph" && filteredPublications.length > 0 && (
+            {activeView !== "graph" && filteredPublications?.length > 0 && (
               <div className="selection-controls">
                 <label className="select-all-checkbox">
                   <input
@@ -245,14 +264,14 @@ const Explorer = () => {
                       .every((id) => selectedPublications.includes(id))}
                     onChange={handleSelectAll}
                   />
-                  Select All ({visiblePublications.length})
+                  Select All ({visiblePublications?.length})
                 </label>
-                {selectedPublications.length > 0 && (
+                {selectedPublications?.length > 0 && (
                   <button
                     className="ai-summary-btn"
                     onClick={() => setShowAIPanel(true)}
                   >
-                    🤖 Summary ({selectedPublications.length})
+                    🤖 Summary ({selectedPublications?.length})
                   </button>
                 )}
               </div>
@@ -276,7 +295,12 @@ const Explorer = () => {
                 ) : (
                   <>
                     <div className="results-grid">
-                      {visiblePublications.map((publication) => (
+                      {visiblePublications.map((publication, index) =>{
+                        if (!publication || !publication.id) {
+                          console.warn('Invalid publication at index:', index, publication);
+                          return null;
+                        }
+                        return (
                         <PublicationCard
                           key={publication.id}
                           publication={publication}
@@ -291,7 +315,8 @@ const Explorer = () => {
                             setShowAIPanel(true);
                           }}
                         />
-                      ))}
+                      );
+                      })}
                     </div>
                     {visibleCount < filteredPublications.length && (
                       <div className="load-more">
@@ -330,7 +355,7 @@ const Explorer = () => {
             )}
 
             {/* No Results - seulement pour Cards et Table */}
-            {activeView !== "graph" && filteredPublications.length === 0 && (
+            {activeView !== "graph" && filteredPublications?.length === 0 && (
               <div className="no-results">
                 <div className="no-results-icon">🔍</div>
                 <h3>No publications found</h3>
