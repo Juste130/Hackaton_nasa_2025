@@ -93,7 +93,7 @@ class HybridSearchEngine:
             }
         
         query = query.strip()
-        logger.info(f"🔍 Searching: '{query}' (mode={mode.value}, limit={limit}, offset={offset})")
+        logger.info(f" Searching: '{query}' (mode={mode.value}, limit={limit}, offset={offset})")
         
         if mode == SearchMode.SEMANTIC:
             results = await self._semantic_search(

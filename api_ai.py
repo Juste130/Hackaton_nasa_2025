@@ -4,13 +4,14 @@ FastAPI endpoints for AI services with session management
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 import dspy
 import os
 import logging
 from dotenv import load_dotenv
 from sqlalchemy import text
 from enum import Enum
+from datetime import datetime
 
 # Import correct modules
 from ai_summarizer import SummaryService
@@ -128,7 +129,7 @@ def get_search_engine():
     global _search_engine
     if _search_engine is None:
         _search_engine = HybridSearchEngine()
-        logger.info("🔍 Search engine initialized")
+        logger.info(" Search engine initialized")
     return _search_engine
 
 
@@ -166,11 +167,23 @@ class GenericRAGRequest(BaseModel):
     question: str = Field(..., description="Question - AI will autonomously search")
 
 
+class RAGResponse(BaseModel):
+    """Response for RAG services"""
+    answer: str
+    citations: List[str] = Field(default_factory=list)
+    confidence: Union[float,str] = "low"
+    reasoning: Optional[str] = None
+    tools_used: List[str] = Field(default_factory=list)
+    metadata: Optional[dict] = None
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
+
 class MessageResponse(BaseModel):
-    role: str
+    """Response for chat-style interactions"""
+    role: str = Field(default="assistant")
     content: str
     metadata: Optional[dict] = None
-    timestamp: str
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class SearchRequest(BaseModel):
@@ -315,7 +328,7 @@ async def summarize_article(
 ):
     """Generate summary for an article"""
     try:
-        logger.info(f"📄 Summarizing {request.pmcid}")
+        logger.info(f" Summarizing {request.pmcid}")
         
         # Get or create session if provided
         session_manager = get_session_manager() if session_id else None
@@ -355,17 +368,17 @@ async def summarize_article(
                 metadata=summary
             )
         
-        logger.info(f"✅ Summary generated for {request.pmcid}")
+        logger.info(f" Summary generated for {request.pmcid}")
         return summary
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Summarization error: {e}")
+        logger.error(f" Summarization error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/rag/ask")
+@app.post("/api/rag/ask", response_model=RAGResponse)
 async def ask_rag_assistant(
     request: RAGQuestionRequest,
     session_id: str = Header(None, alias="X-Session-ID")
@@ -394,7 +407,7 @@ async def ask_rag_assistant(
         
         # Get RAG service and ask question
         rag_service = get_rag_service()
-        result = await rag_service.ask_question(request.question)
+        result = await rag_service.ask(request.question, pmcids=request.pmcids)
         
         # Save to session if provided
         if session_id:
@@ -408,35 +421,40 @@ async def ask_rag_assistant(
             session_manager.add_message(
                 session_id=session_id,
                 role='assistant',
-                content=result['answer'],
+                content=result.get('answer', result.get('message', '')),
                 metadata={
                     'citations': result.get('citations', []),
                     'confidence': result.get('confidence', 0.0)
                 }
             )
         
-        logger.info(f"✅ RAG response generated")
-        return MessageResponse(
-            message=result['answer'],
+        logger.info(f" RAG response generated")
+        
+        # Return structured RAG response
+        return RAGResponse(
+            answer=result.get('answer', result.get('message', '')),
             citations=result.get('citations', []),
+            confidence=result.get('confidence'),
+            reasoning=result.get('reasoning'),
+            tools_used=result.get('tools_used', []),
             metadata=result
         )
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ RAG error: {e}")
+        logger.error(f" RAG error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/rag/generic")
+@app.post("/api/rag/generic", response_model=RAGResponse)
 async def ask_generic_rag(
     request: GenericRAGRequest,
     session_id: str = Header(None, alias="X-Session-ID")
 ):
     """Ask question to generic RAG system"""
     try:
-        logger.info(f"🔍 Generic RAG: {request.question[:50]}...")
+        logger.info(f" Generic RAG: {request.question[:50]}...")
         
         # Get or create session if provided
         session_manager = get_session_manager() if session_id else None
@@ -458,7 +476,7 @@ async def ask_generic_rag(
         
         # Get generic RAG service
         rag_service = get_generic_rag_service()
-        result = await rag_service.ask_question(request.question)
+        result = await rag_service.ask(request.question)
         
         # Save to session if provided
         if session_id:
@@ -472,7 +490,7 @@ async def ask_generic_rag(
             session_manager.add_message(
                 session_id=session_id,
                 role='assistant',
-                content=result['answer'],
+                content=result.get('answer', result.get('message', '')),
                 metadata={
                     'citations': result.get('citations', []),
                     'reasoning': result.get('reasoning', ''),
@@ -480,17 +498,22 @@ async def ask_generic_rag(
                 }
             )
         
-        logger.info(f"✅ Generic RAG response generated")
-        return MessageResponse(
-            message=result['answer'],
+        logger.info(f" Generic RAG response generated")
+        
+        # Return structured RAG response
+        return RAGResponse(
+            answer=result.get('answer', result.get('message', '')),
             citations=result.get('citations', []),
+            confidence=result.get('confidence'),
+            reasoning=result.get('reasoning'),
+            tools_used=result.get('tools_used', []),
             metadata=result
         )
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Generic RAG error: {e}")
+        logger.error(f" Generic RAG error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -519,7 +542,7 @@ async def hybrid_search(
     - Response includes `total_pages`, `has_next`, `has_previous`
     """
     try:
-        logger.info(f"🔍 Search: '{request.query[:50]}...' (mode={request.mode}, page={request.page})")
+        logger.info(f" Search: '{request.query[:50]}...' (mode={request.mode}, page={request.page})")
         
         # Get or create session if provided
         session_manager = get_session_manager() if session_id else None
@@ -642,13 +665,13 @@ async def hybrid_search(
             filters_applied=filters_applied
         )
         
-        logger.info(f"🔍 Search completed: {len(results_as_dicts)} results, page {request.page}/{total_pages}")
+        logger.info(f" Search completed: {len(results_as_dicts)} results, page {request.page}/{total_pages}")
         return response
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"🔍 Search error: {e}")
+        logger.error(f" Search error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -732,7 +755,7 @@ async def get_search_filters():
             }
     
     except Exception as e:
-        logger.error(f"🔍 Filters error: {e}")
+        logger.error(f" Filters error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -794,9 +817,9 @@ async def shutdown():
             await _generic_rag_service.close()
         if _search_engine:
             await _search_engine.close()
-        logger.info("✅ Services closed gracefully")
+        logger.info(" Services closed gracefully")
     except Exception as e:
-        logger.error(f"❌ Shutdown error: {e}")
+        logger.error(f" Shutdown error: {e}")
 
 
 # Startup event

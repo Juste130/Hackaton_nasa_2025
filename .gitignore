@@ -10,7 +10,7 @@ wheels/
 .venv
 lib/
 .env
-aislop.py
+aislop*
 fix*.py
 challenge.md
 strategy.md
@@ -25,3 +25,4 @@ AI/
 dspy_inspect*
 example*
 requirements_*
+*ai*

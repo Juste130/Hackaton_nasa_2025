@@ -218,7 +218,7 @@ class SessionManager:
                 if row['metadata']:
                     info['metadata'] = json.loads(row['metadata'])
                 
-                logger.info(f"📋 Found existing session: {session_id} ({row['service_type']})")
+                logger.info(f" Found existing session: {session_id} ({row['service_type']})")
                 return info
             
             else:
@@ -248,7 +248,7 @@ class SessionManager:
                 if metadata:
                     info['metadata'] = metadata
                 
-                logger.info(f"✨ Created new session: {session_id} ({service_type})")
+                logger.info(f" Created new session: {session_id} ({service_type})")
                 return info
             
 

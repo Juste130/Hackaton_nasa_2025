@@ -335,39 +335,156 @@ class PublicationTools:
             return f"Search failed: {str(e)}"
     
     def search_by_mesh_term(self, mesh_term: str, limit: int = 5) -> str:
-        """Find articles by MeSH term"""
+        """Find articles by MeSH term using PostgreSQL"""
         logger.info(f" Searching articles for MeSH term: {mesh_term}")
         
         try:
-            with self.neo4j_client.driver.session() as session:
-                result = session.run("""
-                    MATCH (p:Publication)-[:HAS_MESH_TERM]->(m:MeshTerm)
-                    WHERE toLower(m.name) CONTAINS toLower($mesh_term)
-                       OR toLower(m.descriptor) CONTAINS toLower($mesh_term)
-                    RETURN DISTINCT p.pmcid AS pmcid
-                    LIMIT $limit
-                """, mesh_term=mesh_term, limit=limit)
+            with self.SessionLocal() as session:
+                result = session.execute(text("""
+                    SELECT DISTINCT p.pmcid, p.title, mt.term
+                    FROM publications p
+                    JOIN publication_mesh_terms pmt ON p.id = pmt.publication_id
+                    JOIN mesh_terms mt ON pmt.mesh_term_id = mt.id
+                    WHERE LOWER(mt.term) LIKE LOWER(:mesh_term)
+                       OR LOWER(mt.term) LIKE LOWER(:mesh_pattern)
+                    ORDER BY p.publication_date DESC
+                    LIMIT :limit
+                """), {
+                    "mesh_term": f"%{mesh_term}%",
+                    "mesh_pattern": f"%{mesh_term}%",
+                    "limit": limit
+                })
                 
-                pmcids = [record["pmcid"] for record in result]
+                articles = result.fetchall()
                 
                 #  Track PMCIDs from MeSH search
-                for pmcid in pmcids:
+                pmcids = []
+                for pmcid, title, term in articles:
+                    pmcids.append(pmcid)
                     citation_tracker.add_pmcid(pmcid, "search_by_mesh_term")
                 
                 if not pmcids:
                     return f"No articles found with MeSH term '{mesh_term}'"
                 
                 logger.info(f" Found {len(pmcids)} articles")
-                return f"Found {len(pmcids)} articles with MeSH term '{mesh_term}':\n" + ", ".join(pmcids)
+                
+                output = f"Found {len(articles)} articles with MeSH term '{mesh_term}':\n"
+                for pmcid, title, term in articles:
+                    output += f"- {pmcid}: {title[:60]}... (MeSH: {term})\n"
+                
+                return output
         
         except Exception as e:
             logger.error(f" MeSH search error: {e}")
             return f"Search failed: {str(e)}"
-    
-    def close(self):
-        self.neo4j_client.close()
-        logger.info(" Closed connections")
 
+    def search_publications(self, query: str, limit: int = 10) -> str:
+        """Search publications by text content using PostgreSQL full-text search"""
+        logger.info(f" Searching publications for: {query}")
+        
+        try:
+            with self.SessionLocal() as session:
+                result = session.execute(text("""
+                    SELECT p.pmcid, p.title, p.abstract,
+                           ts_rank(to_tsvector('english', p.title || ' ' || COALESCE(p.abstract, '')), 
+                                   plainto_tsquery('english', :query)) as rank
+                    FROM publications p
+                    WHERE to_tsvector('english', p.title || ' ' || COALESCE(p.abstract, '')) 
+                          @@ plainto_tsquery('english', :query)
+                    ORDER BY rank DESC, p.publication_date DESC
+                    LIMIT :limit
+                """), {"query": query, "limit": limit})
+                
+                articles = result.fetchall()
+                
+                #  Track PMCIDs from text search
+                pmcids = []
+                for pmcid, title, abstract, rank in articles:
+                    pmcids.append(pmcid)
+                    citation_tracker.add_pmcid(pmcid, "search_publications")
+                
+                if not pmcids:
+                    return f"No articles found matching '{query}'"
+                
+                logger.info(f" Found {len(pmcids)} articles")
+                
+                output = f"Found {len(articles)} articles matching '{query}':\n"
+                for pmcid, title, abstract, rank in articles:
+                    snippet = abstract[:100] + "..." if abstract else "No abstract"
+                    output += f"- {pmcid}: {title[:60]}... (relevance: {rank:.3f})\n  {snippet}\n"
+                
+                return output
+        
+        except Exception as e:
+            logger.error(f" Publication search error: {e}")
+            return f"Search failed: {str(e)}"
+
+    def get_publication_keywords(self, pmcid: str) -> str:
+        """Get keywords for a specific publication"""
+        logger.info(f" Getting keywords for {pmcid}")
+        citation_tracker.add_pmcid(pmcid, "get_publication_keywords")
+        
+        try:
+            with self.SessionLocal() as session:
+                result = session.execute(text("""
+                    SELECT k.keyword, k.category
+                    FROM keywords k
+                    JOIN publication_keywords pk ON k.id = pk.keyword_id
+                    JOIN publications p ON pk.publication_id = p.id
+                    WHERE p.pmcid = :pmcid
+                    ORDER BY k.keyword
+                """), {"pmcid": pmcid})
+                
+                keywords = result.fetchall()
+                
+                if not keywords:
+                    return f"No keywords found for {pmcid}"
+                
+                output = f"Keywords for {pmcid}:\n"
+                for keyword, category in keywords:
+                    category_text = f" ({category})" if category else ""
+                    output += f"- {keyword}{category_text}\n"
+                
+                logger.info(f" Found {len(keywords)} keywords")
+                return output
+        
+        except Exception as e:
+            logger.error(f" Keywords error: {e}")
+            return f"Failed to get keywords: {str(e)}"
+
+    def get_publication_mesh_terms(self, pmcid: str) -> str:
+        """Get MeSH terms for a specific publication"""
+        logger.info(f" Getting MeSH terms for {pmcid}")
+        citation_tracker.add_pmcid(pmcid, "get_publication_mesh_terms")
+        
+        try:
+            with self.SessionLocal() as session:
+                result = session.execute(text("""
+                    SELECT mt.term, mt.tree_number, pmt.is_major_topic
+                    FROM mesh_terms mt
+                    JOIN publication_mesh_terms pmt ON mt.id = pmt.mesh_term_id
+                    JOIN publications p ON pmt.publication_id = p.id
+                    WHERE p.pmcid = :pmcid
+                    ORDER BY pmt.is_major_topic DESC, mt.term
+                """), {"pmcid": pmcid})
+                
+                mesh_terms = result.fetchall()
+                
+                if not mesh_terms:
+                    return f"No MeSH terms found for {pmcid}"
+                
+                output = f"MeSH terms for {pmcid}:\n"
+                for term, tree_number, is_major in mesh_terms:
+                    major_indicator = " [MAJOR]" if is_major else ""
+                    tree_info = f" ({tree_number})" if tree_number else ""
+                    output += f"- {term}{tree_info}{major_indicator}\n"
+                
+                logger.info(f" Found {len(mesh_terms)} MeSH terms")
+                return output
+        
+        except Exception as e:
+            logger.error(f" MeSH terms error: {e}")
+            return f"Failed to get MeSH terms: {str(e)}"
 
 #  Initialize tools ONCE at module level
 logger.info(" Initializing PublicationTools...")
@@ -422,6 +539,21 @@ def search_by_mesh_term(mesh_term: str, limit: int = 5) -> str:
     return get_tools_instance().search_by_mesh_term(mesh_term, limit)
 
 
+#  Tool Functions for ReAct - add new tools
+
+def search_publications(query: str, limit: int = 10) -> str:
+    """Search publications by text content using full-text search"""
+    return get_tools_instance().search_publications(query, limit)
+
+def get_publication_keywords(pmcid: str) -> str:
+    """Get keywords for a specific publication"""
+    return get_tools_instance().get_publication_keywords(pmcid)
+
+def get_publication_mesh_terms(pmcid: str) -> str:
+    """Get MeSH terms for a specific publication"""
+    return get_tools_instance().get_publication_mesh_terms(pmcid)
+
+
 # === DSPy Citation Extraction ===
 
 class CitationExtraction(dspy.Signature):
@@ -465,10 +597,6 @@ class RAGAssistant(dspy.Module):
     def __init__(self, llm: Optional[dspy.LM] = None):
         super().__init__()
         
-        # Remove the configure call - use context instead
-        # if llm:
-        #     dspy.settings.configure(lm=llm)
-        
         logger.info("🤖 Configuring ReAct agent with tools...")
         
         class RAGSignature(dspy.Signature):
@@ -479,22 +607,30 @@ class RAGAssistant(dspy.Module):
         self.agent = dspy.ReAct(
             signature=RAGSignature,
             tools=[
+                #  Article content tools
                 get_article_sections,
                 get_section_content,
                 get_article_metadata,
                 get_article_authors,
                 get_related_articles,
+                
+                #  Search tools  
+                search_publications,  #  Full-text search
                 search_by_organism,
                 search_by_phenomenon,
-                search_by_mesh_term
+                search_by_mesh_term,  #  Fixed for PostgreSQL
+                
+                #  Metadata tools
+                get_publication_keywords,  #  Get keywords
+                get_publication_mesh_terms,  #  Get MeSH terms
             ],
-            max_iters=8  #  Plus d'itérations pour multi-hop
+            max_iters=10  #  More iterations for comprehensive searches
         )
         
         #  Citation extractor
         self.citation_extractor = CitationExtractor()
         
-        logger.info(" ReAct agent ready with 8 tools + citation extraction")
+        logger.info(" ReAct agent ready with 11 tools + citation extraction")
     
     def forward(self, question: str, conversation_context: Optional[List[Dict]] = None) -> Dict:
         """Answer question using ReAct - AI autonomously decides which tools to use"""
@@ -644,11 +780,17 @@ async def main():
     print("="*60)
     print("Ask questions about space biology research!")
     print("I'll autonomously search and use the right tools.\n")
-    print("Available tools:")
-    print("• get_article_sections, get_section_content")
-    print("• get_article_metadata, get_article_authors")
-    print("• get_related_articles")
-    print("• search_by_organism, search_by_phenomenon, search_by_mesh_term\n")
+    print(" Available tools:")
+    print(" Article tools:")
+    print("  • get_article_sections, get_section_content")
+    print("  • get_article_metadata, get_article_authors")
+    print("  • get_related_articles")
+    print(" Search tools:")
+    print("  • search_publications (full-text)")
+    print("  • search_by_organism, search_by_phenomenon")
+    print("  • search_by_mesh_term (PostgreSQL)")
+    print(" Metadata tools:")
+    print("  • get_publication_keywords, get_publication_mesh_terms\n")
     
     try:
         while True:
@@ -659,7 +801,7 @@ async def main():
             
             if question.lower() == 'clear':
                 service.clear_history()
-                print(" Conversation history cleared")
+                print("🧹 Conversation history cleared")
                 continue
             
             pmcids_input = input(" Optional PMCIDs (comma-separated, or press Enter): ").strip()
@@ -679,7 +821,7 @@ async def main():
             
             if result.get('reasoning_trace'):
                 print(f"\n🧠 Reasoning Trace:")
-                for step in result['reasoning_trace'][:8]:
+                for step in result['reasoning_trace'][:10]:
                     print(f"   {step}")
     
     finally:
