@@ -3,6 +3,8 @@ import Header from './components/Header';
 import ChatWidget from './components/ChatWidget';
 import Home from './pages/Home';
 import Explorer from './pages/Explorer';
+import Analytics from './pages/Analytics';
+import GapAnalysis from './pages/GapAnalysis';
 import About from './pages/About';
 import Resources from './pages/Resources';
 import { ChatProvider } from './context/ChatContext'
@@ -16,6 +18,8 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'explorer': return <Explorer />;
+      case 'analytics': return <Analytics />;
+      case 'gap-analysis': return <GapAnalysis />;
       case 'about': return <About />;
       case 'resources': return <Resources />;
       default: return <Home onNavigate={setCurrentPage} />;

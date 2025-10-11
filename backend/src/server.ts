@@ -4,6 +4,7 @@ import keywordsRouter from "./routes/keywords";
 import meshTermsRouter from "./routes/meshTerms";
 import publicationsRouter from "./routes/publications";
 import filtersRouter from "./routes/filters";
+import analyticsRouter from "./routes/analytics";
 import { cacheService } from "./services/cache";
 import { defaultCache } from "./middleware/cache";
 
@@ -45,6 +46,7 @@ app.use("/api", defaultCache, publicationsRouter);
 app.use("/api/keywords", defaultCache, keywordsRouter);
 app.use("/api/mesh_terms", defaultCache, meshTermsRouter);
 app.use("/api/filters", defaultCache, filtersRouter);
+app.use("/api/analytics", defaultCache, analyticsRouter);
 
 // Gestion graceful du shutdown
 process.on('SIGTERM', async () => {

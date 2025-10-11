@@ -69,7 +69,7 @@ const Explorer = () => {
     }
   }, [selectedFilters, searchQuery, activeView]);
 
-  // Charger le graphe au montage
+  // Charger le graphe au montage et appliquer automatiquement les filtres
   useEffect(() => {
     if (activeView === "graph") {
       console.log('🔄 Loading graph with filters:', {
@@ -77,13 +77,21 @@ const Explorer = () => {
         phenomenon: selectedPhenomenon
       });
       
-      fetchGraph({ 
-        limit: 100,
-        organism: selectedOrganism, // 🔥 AJOUT des filtres
-        phenomenon: selectedPhenomenon // 🔥 AJOUT des filtres
-      });
+      // Si on a des filtres actifs, utiliser le mode filter, sinon full
+      const hasFilters = selectedOrganism || selectedPhenomenon;
+      
+      if (hasFilters) {
+        fetchGraph({ 
+          node_types: ["Publication", "Organism", "Phenomenon"],
+          organism: selectedOrganism || null,
+          phenomenon: selectedPhenomenon || null,
+          limit: 100
+        }, 'filter');
+      } else {
+        fetchGraph({ limit: 100 }, 'full');
+      }
     }
-  }, [activeView, selectedOrganism, selectedPhenomenon]); // 🔥 AJOUT des dépendances
+  }, [activeView, selectedOrganism, selectedPhenomenon]);
 
   const selectedPubData = publications.filter((pub) =>
     selectedPublications.includes(pub.id)
@@ -196,34 +204,64 @@ const Explorer = () => {
             Clear All Filters
           </button>
 
-          {/* Contrôles spécifiques à la vue graph - Simplifié */}
+          {/* Affichage des filtres actifs en mode graph */}
+          {activeView === "graph" && (selectedOrganism || selectedPhenomenon) && (
+            <div className="active-filters-display">
+              <h4>🎯 Active Graph Filters</h4>
+              {selectedOrganism && (
+                <div className="filter-tag">
+                  <span>Organism: {selectedOrganism}</span>
+                  <button onClick={() => setSelectedOrganism("")}>×</button>
+                </div>
+              )}
+              {selectedPhenomenon && (
+                <div className="filter-tag">
+                  <span>Phenomenon: {selectedPhenomenon}</span>
+                  <button onClick={() => setSelectedPhenomenon("")}>×</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Contrôles spécifiques à la vue graph */}
           {activeView === "graph" && (
-            <div className="graph-controls-simple">
-              <button 
-                className="btn btn-primary"
-                onClick={() => fetchGraph({ limit: 100 })}
-                disabled={graphLoading}
-              >
-                {graphLoading ? "Loading..." : "Reload Graph"}
-              </button>
-              
-              {/* Bouton de debug temporaire
-              <button
-                className="btn btn-secondary"
-                onClick={async () => {
-                  console.log('🧪 Testing direct API call...');
-                  try {
-                    const response = await fetch('http://localhost:8000/api/graph/full?limit=10');
-                    const data = await response.json();
-                    console.log('✅ Direct API test successful:', data);
-                  } catch (err) {
-                    console.error('❌ Direct API test failed:', err);
-                  }
+            <div className="graph-controls-section">
+              <GraphControls
+                onSearch={(searchParams) => {
+                  console.log('🔍 Search triggered:', searchParams);
+                  fetchGraph(searchParams, 'search');
                 }}
-                style={{ marginLeft: '10px' }}
-              >
-                🧪 Test API
-              </button> */}
+                onFilter={(filterParams) => {
+                  console.log('🎯 Filter triggered:', filterParams);
+                  fetchGraph(filterParams, 'filter');
+                }}
+                onLoadFull={() => {
+                  console.log('📊 Loading full graph');
+                  fetchGraph({ limit: 100 }, 'full');
+                }}
+                onClear={() => {
+                  console.log('🧹 Clearing graph');
+                  // Reset aussi les filtres du sidebar
+                  setSelectedOrganism("");
+                  setSelectedPhenomenon("");
+                  fetchGraph({ limit: 50 }, 'full');
+                }}
+                onCenter={() => {
+                  console.log('🎯 Centering graph');
+                  // Cette fonctionnalité sera implémentée dans GraphVisualization
+                }}
+                loading={graphLoading}
+                stats={graphData?.stats}
+                // NOUVELLES PROPS pour synchroniser avec le sidebar
+                initialOrganism={selectedOrganism}
+                initialPhenomenon={selectedPhenomenon}
+                onFiltersChange={(filters) => {
+                  console.log('🔄 GraphControls filters changed:', filters);
+                  // Synchroniser avec le sidebar
+                  setSelectedOrganism(filters.organism || "");
+                  setSelectedPhenomenon(filters.phenomenon || "");
+                }}
+              />
             </div>
           )}
         </aside>

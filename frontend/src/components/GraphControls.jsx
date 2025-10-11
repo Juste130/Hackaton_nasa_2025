@@ -1,5 +1,5 @@
 // src/components/GraphControls.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './GraphControls.css';
 
 const GraphControls = ({ 
@@ -9,7 +9,11 @@ const GraphControls = ({
   onClear, 
   onCenter, 
   loading,
-  stats 
+  stats,
+  // Nouvelles props pour synchroniser avec les filtres du sidebar
+  initialOrganism = "",
+  initialPhenomenon = "",
+  onFiltersChange // Callback pour notifier les changements
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchMode, setSearchMode] = useState('hybrid');
@@ -27,12 +31,19 @@ const GraphControls = ({
     Author: false
   });
   
-  const [organismFilter, setOrganismFilter] = useState('');
-  const [phenomenonFilter, setPhenomenonFilter] = useState('');
+  // Initialiser avec les filtres du sidebar
+  const [organismFilter, setOrganismFilter] = useState(initialOrganism);
+  const [phenomenonFilter, setPhenomenonFilter] = useState(initialPhenomenon);
   const [platformFilter, setPlatformFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [filterLimit, setFilterLimit] = useState(100);
+
+  // Synchroniser avec les props initiales
+  useEffect(() => {
+    setOrganismFilter(initialOrganism);
+    setPhenomenonFilter(initialPhenomenon);
+  }, [initialOrganism, initialPhenomenon]);
 
   const handleSearch = () => {
     if (!searchQuery.trim()) {
@@ -64,6 +75,15 @@ const GraphControls = ({
       limit: filterLimit
     };
 
+    // Notifier le parent des changements de filtres
+    if (onFiltersChange) {
+      onFiltersChange({
+        organism: organismFilter.trim() || "",
+        phenomenon: phenomenonFilter.trim() || "",
+        platform: platformFilter.trim() || ""
+      });
+    }
+
     onFilter(filterParams);
   };
 
@@ -90,6 +110,15 @@ const GraphControls = ({
     setDateFrom('');
     setDateTo('');
     setFilterLimit(100);
+    
+    // Notifier le parent du reset
+    if (onFiltersChange) {
+      onFiltersChange({
+        organism: "",
+        phenomenon: "",
+        platform: ""
+      });
+    }
   };
 
   const selectAllNodeTypes = () => {

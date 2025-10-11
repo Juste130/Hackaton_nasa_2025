@@ -64,8 +64,8 @@ const useGraphData = () => {
     return allResults;
   };
 
-  const fetchGraph = useCallback(async (params = {}) => {
-    console.log('🚀 useGraphData: Starting to fetch graph with params:', params);
+  const fetchGraph = useCallback(async (params = {}, mode = 'auto') => {
+    console.log('🚀 useGraphData: Starting to fetch graph with params:', params, 'mode:', mode);
     
     try {
       setLoading(true);
@@ -73,28 +73,50 @@ const useGraphData = () => {
 
       let response;
 
-      // 🔥 Étape 1: Récupérer le graphe rapidement
-      const hasFilters = params.organism || params.phenomenon;
-
-      if (hasFilters) {
+      if (mode === 'search') {
+        console.log('🔍 Using SEARCH mode');
+        response = await graphApi.searchGraph(params);
+      } else if (mode === 'filter') {
         console.log('🎯 Using FILTER mode');
-        const filterData = {
-          node_types: ["Publication", "Organism", "Phenomenon"],
-          filters: {
-            organisms: params.organism ? [params.organism] : [],
-            phenomena: params.phenomenon ? [params.phenomenon] : [],
-          },
-          limit: params.limit || 100
-        };
-        response = await graphApi.filterGraph(filterData);
+        response = await graphApi.filterGraph(params);
       } else {
-        console.log('📊 Using FULL graph mode');
-        response = await graphApi.getFullGraph(params);
+        // Mode automatique - déterminer selon les paramètres
+        const hasFilters = params.organism || params.phenomenon || params.platform;
+        const hasSearchQuery = params.query;
+        
+        console.log('🔍 Auto mode check:', { 
+          hasFilters, 
+          hasSearchQuery,
+          organism: params.organism, 
+          phenomenon: params.phenomenon 
+        });
+
+        if (hasSearchQuery) {
+          console.log('🔍 Auto -> SEARCH mode');
+          response = await graphApi.searchGraph(params);
+        } else if (hasFilters) {
+          console.log('🎯 Auto -> FILTER mode');
+          
+          const filterData = {
+            node_types: ["Publication", "Organism", "Phenomenon"],
+            filters: { // 🔥 CORRECTION: Ajouter la clé 'filters'
+              organisms: params.organism ? [params.organism] : [],
+              phenomena: params.phenomenon ? [params.phenomenon] : [],
+            },
+            limit: params.limit || 100
+          };
+
+          response = await graphApi.filterGraph(filterData);
+        } else {
+          console.log('📊 Auto -> FULL graph mode');
+          response = await graphApi.getFullGraph(params);
+        }
       }
 
       console.log("✅ Graph data received:", {
         nodes: response.nodes?.length,
-        links: response.links?.length || response.edges?.length
+        links: response.links?.length || response.edges?.length,
+        stats: response.stats
       });
 
       // 🔥 Étape 2: Transformation initiale RAPIDE
@@ -111,7 +133,8 @@ const useGraphData = () => {
           }
           return node;
         }),
-        links: response.links || response.edges || []
+        links: response.links || response.edges || [],
+        stats: response.stats || {}
       };
 
       // 🔥 AFFICHER IMMÉDIATEMENT le graphe sans attendre les titres
@@ -138,7 +161,8 @@ const useGraphData = () => {
               }
               return node;
             }),
-            links: initialTransformedData.links
+            links: initialTransformedData.links,
+            stats: initialTransformedData.stats
           };
           
           setGraphData(finalTransformedData);

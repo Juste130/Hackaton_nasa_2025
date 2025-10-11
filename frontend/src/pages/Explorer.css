@@ -277,6 +277,64 @@
   margin-left: auto;
 }
 
+/* Contrôles spécifiques au graphique */
+.graph-controls-section {
+  margin: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e1e5e9;
+}
+
+/* Style pour GraphControls intégré */
+.graph-controls-section .graph-controls {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Affichage des filtres actifs */
+.active-filters-display {
+  margin: 1rem;
+  padding: 1rem;
+  background: #e8f4fd;
+  border-radius: 6px;
+  border-left: 4px solid #3498db;
+}
+
+.active-filters-display h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #3498db;
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  margin: 0.2rem 0.3rem 0.2rem 0;
+  font-size: 0.8rem;
+}
+
+.filter-tag button {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.filter-tag button:hover {
+  opacity: 0.7;
+}
+
 .clear-filters-btn {
   width: 100%;
   padding: 0.75rem;
