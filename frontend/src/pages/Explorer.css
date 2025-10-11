@@ -1,0 +1,489 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.explorer-header {
+  background: linear-gradient(135deg, #0b3d91 0%, #1e5799 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.explorer-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.explorer-header p {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Container principal avec modes différents */
+.explorer-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden; /* Important pour éviter le débordement */
+}
+
+.explorer-content.graph-mode {
+  height: calc(100vh - 160px); /* Hauteur fixe en mode graphe */
+}
+
+/* Sidebar des filtres */
+.filters-sidebar {
+  flex-shrink: 0;
+  width: 300px;
+  background: white;
+  border-right: 1px solid #e1e5e9;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+/* Mode graphe : sidebar plus large */
+.explorer-content.graph-mode .filters-sidebar {
+  width: 320px;
+}
+
+/* Main content area */
+.results-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Évite le débordement */
+  background: white;
+}
+
+/* Mode graphe : hauteur complète */
+.explorer-content.graph-mode .results-main {
+  height: 100%;
+}
+
+/* View controls */
+.view-controls {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e1e5e9;
+  background: white;
+  flex-shrink: 0; /* Ne pas rétrécir */
+}
+
+.view-toggles {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.view-toggle {
+  padding: 0.7rem 1.5rem;
+  border: 2px solid #e1e5e9;
+  background: white;
+  color: #2c3e50;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.view-toggle:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+.view-toggle.active {
+  background: #3498db;
+  border-color: #3498db;
+  color: white;
+}
+
+/* Selection controls */
+.selection-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.select-all-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.ai-summary-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.ai-summary-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Graph error display */
+.graph-error {
+  background: #fee;
+  color: #c33;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.graph-error button {
+  background: none;
+  border: none;
+  color: #c33;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  margin-left: 1rem;
+}
+
+/* Results area - crucial pour le graphe */
+.results-area {
+  flex: 1;
+  overflow: hidden; /* Important */
+  position: relative;
+}
+
+/* Vues spécifiques */
+.cards-view,
+.table-view {
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 2rem;
+}
+
+.graph-view {
+  height: 100%; /* Prend toute la hauteur disponible */
+  width: 100%;
+  position: relative;
+  overflow: hidden; /* Évite le débordement */
+}
+
+/* Grid pour les cartes */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* No results states */
+.no-results,
+.graph-no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  text-align: center;
+  color: #666;
+}
+
+.no-results-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Sidebar filters styles */
+.search-box {
+  padding: 1rem;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.filter-group {
+  padding: 1rem;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.filter-group h3 {
+  margin: 0 0 0.75rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.year-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.year-input-group {
+  flex: 1;
+}
+
+.year-input-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.year-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+
+.filter-option input {
+  margin: 0;
+}
+
+.filter-count {
+  color: #666;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.clear-filters-btn {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.clear-filters-btn:hover {
+  background: #c0392b;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.6s ease-in;
+}
+
+.slide-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* Explorer.css */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2rem 0;
+  font-size: 1.2rem;
+}
+
+.spinner {
+  border: 4px solid #eee;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Tablettes */
+@media (max-width: 1024px) {
+  .explorer-content {
+    flex-direction: column;
+  }
+  
+  .explorer-content.graph-mode {
+    height: auto; /* Laisser la hauteur s'adapter */
+  }
+  
+  .filters-sidebar {
+    width: 100%;
+    max-height: 300px;
+    border-right: none;
+    border-bottom: 1px solid #e1e5e9;
+    order: -1; /* Mettre en premier */
+  }
+  
+  .explorer-content.graph-mode .filters-sidebar {
+    width: 100%;
+    max-height: 350px;
+  }
+  
+  .results-main {
+    overflow: visible; /* Permettre le scroll sur tablette */
+  }
+  
+  .graph-view {
+    height: 70vh; /* Hauteur fixe sur tablette */
+    min-height: 500px;
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .view-controls {
+    padding: 1rem;
+  }
+  
+  .cards-view,
+  .table-view {
+    padding: 1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .explorer-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .explorer-header h1 {
+    font-size: 2rem;
+  }
+  
+  .explorer-header p {
+    font-size: 1rem;
+  }
+  
+  .filters-sidebar {
+    max-height: 250px;
+  }
+  
+  .graph-view {
+    height: 60vh;
+    min-height: 400px;
+  }
+  
+  .view-toggles {
+    flex-wrap: wrap;
+  }
+  
+  .view-toggle {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .selection-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .year-inputs {
+    flex-direction: column;
+  }
+  
+  .view-controls {
+    padding: 0.75rem;
+  }
+  
+  .cards-view,
+  .table-view {
+    padding: 0.75rem;
+  }
+}
+
+/* Très petit mobile */
+@media (max-width: 480px) {
+  .explorer-header {
+    padding: 1rem 0.75rem;
+  }
+  
+  .explorer-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .filter-group {
+    padding: 0.75rem;
+  }
+  
+  .search-box {
+    padding: 0.75rem;
+  }
+  
+  .graph-view {
+    height: 50vh;
+    min-height: 350px;
+  }
+  
+  .view-controls {
+    padding: 0.5rem;
+  }
+  
+  .cards-view,
+  .table-view {
+    padding: 0.5rem;
+  }
+}
+
+/* Exemple pour la page Explorer */
+.explorer-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.explorer-main-content {
+  flex: 1;
+  min-height: 0; /* Important pour permettre au flex child de se réduire */
+  position: relative;
+}
