@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './GapAnalysis.css';
 import StatCard from '../components/StatCard';
+import CubeVisualization from '../components/CubeVisualization';
 
 const GapAnalysis = () => {
   const [loading, setLoading] = useState(true);
@@ -411,37 +412,68 @@ const GapAnalysis = () => {
     })).slice(0, 6); // Limiter à 6 gaps principaux
   };
 
-  const render3DCube = () => (
-    <div className="cube-visualization">
-      <h3>3D Research Gap Visualization</h3>
-      <div className="cube-placeholder">
-        <div className="cube-info">
-          <h4>Interactive 3D Cube</h4>
-          <p>
-            This visualization will show the organism × phenomenon × platform 
-            research space as an interactive 3D cube, where:
-          </p>
-          <ul>
-            <li><strong>Red cubes:</strong> Missing research combinations</li>
-            <li><strong>Green cubes:</strong> Well-researched areas</li>
-            <li><strong>Yellow cubes:</strong> Partially covered areas</li>
-          </ul>
-          <p>
-            <strong>Dimensions:</strong><br/>
-            • Organisms: {gapData.cubeData.dimensions?.organisms?.length || 0}<br/>
-            • Phenomena: {gapData.cubeData.dimensions?.phenomena?.length || 0}<br/>
-            • Platforms: {gapData.cubeData.dimensions?.platforms?.length || 0}
-          </p>
+  const render3DCube = () => {
+    if (loading) {
+      return <div className="chart-loading">Loading 3D visualization data...</div>;
+    }
+
+    return (
+      <div className="cube-section">
+        <div className="section-header">
+          <h3>3D Research Space Visualization</h3>
+          <p>Interactive exploration of organism × phenomenon × platform research combinations</p>
         </div>
-        <div className="cube-stats">
-          <div className="cube-stat">
-            <span className="stat-value">{gapData.cubeData.total_missing || 0}</span>
-            <span className="stat-label">Missing Combinations</span>
+        
+        <CubeVisualization 
+          cubeData={gapData.cubeData}
+          className="gap-cube-viz"
+        />
+        
+        <div className="cube-description">
+          <div className="description-grid">
+            <div className="description-item">
+              <h4>🎯 How to Use</h4>
+              <ul>
+                <li><strong>Rotate:</strong> The cube rotates automatically, or click the pause button</li>
+                <li><strong>Hover:</strong> Move mouse over cubes to see details</li>
+                <li><strong>Click:</strong> Select a cube for detailed information</li>
+                <li><strong>Filter:</strong> Use the dropdown to filter by research status</li>
+              </ul>
+            </div>
+            
+            <div className="description-item">
+              <h4>🔍 Understanding the Colors</h4>
+              <ul>
+                <li><strong>🔴 Red:</strong> Critical gaps - no studies found</li>
+                <li><strong>🟠 Orange:</strong> Limited research (1-2 studies)</li>
+                <li><strong>🟡 Yellow:</strong> Some research (3-5 studies)</li>
+                <li><strong>🟢 Green:</strong> Well-researched (6+ studies)</li>
+              </ul>
+            </div>
+            
+            <div className="description-item">
+              <h4>📊 Research Dimensions</h4>
+              <ul>
+                <li><strong>X-axis:</strong> Organisms (humans, plants, animals, microbes)</li>
+                <li><strong>Y-axis:</strong> Phenomena (physiological effects, adaptations)</li>
+                <li><strong>Z-axis:</strong> Platforms (ISS, parabolic flight, ground simulation)</li>
+              </ul>
+            </div>
+            
+            <div className="description-item">
+              <h4>🎯 Strategic Insights</h4>
+              <ul>
+                <li><strong>Red clusters:</strong> Priority areas for future research funding</li>
+                <li><strong>Green clusters:</strong> Well-understood domains</li>
+                <li><strong>Scattered reds:</strong> Potential breakthrough opportunities</li>
+                <li><strong>Pattern gaps:</strong> Systematic research limitations</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const calculateAverageCompleteness = () => {
     // Corriger pour utiliser les vraies données avec vérification de type

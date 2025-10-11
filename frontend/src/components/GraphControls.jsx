@@ -75,6 +75,11 @@ const GraphControls = ({
       limit: filterLimit
     };
 
+    console.log('🎯 GraphControls filter params:', filterParams);
+    console.log('📋 Selected node types:', selectedTypes);
+    console.log('🧬 Organism filter:', organismFilter);
+    console.log('🔬 Phenomenon filter:', phenomenonFilter);
+
     // Notifier le parent des changements de filtres
     if (onFiltersChange) {
       onFiltersChange({
@@ -88,10 +93,31 @@ const GraphControls = ({
   };
 
   const handleNodeTypeChange = (type) => {
-    setNodeTypes(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
+    const newNodeTypes = {
+      ...nodeTypes,
+      [type]: !nodeTypes[type]
+    };
+    setNodeTypes(newNodeTypes);
+    
+    // Auto-apply filter when node types change
+    setTimeout(() => {
+      const selectedTypes = Object.entries(newNodeTypes)
+        .filter(([_, selected]) => selected)
+        .map(([type, _]) => type);
+
+      const filterParams = {
+        node_types: selectedTypes.length > 0 ? selectedTypes : null,
+        organism: organismFilter.trim() || null,
+        phenomenon: phenomenonFilter.trim() || null,
+        platform: platformFilter.trim() || null,
+        date_from: dateFrom || null,
+        date_to: dateTo || null,
+        limit: filterLimit
+      };
+
+      console.log('🔄 Auto-applying filter with new node types:', filterParams);
+      onFilter(filterParams);
+    }, 100);
   };
 
   const clearAllFilters = () => {
@@ -136,6 +162,33 @@ const GraphControls = ({
 
   return (
     <div className="graph-controls">
+      {/* Active Filters Display */}
+      {(organismFilter || phenomenonFilter || platformFilter) && (
+        <div className="active-filters-summary">
+          <h4>🎯 Active Filters</h4>
+          <div className="filter-tags">
+            {organismFilter && (
+              <span className="filter-tag">
+                Organism: {organismFilter}
+                <button onClick={() => setOrganismFilter("")}>×</button>
+              </span>
+            )}
+            {phenomenonFilter && (
+              <span className="filter-tag">
+                Phenomenon: {phenomenonFilter}
+                <button onClick={() => setPhenomenonFilter("")}>×</button>
+              </span>
+            )}
+            {platformFilter && (
+              <span className="filter-tag">
+                Platform: {platformFilter}
+                <button onClick={() => setPlatformFilter("")}>×</button>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Search Controls */}
       <div className="control-group">
         <h3>Search Graph</h3>
@@ -383,6 +436,42 @@ const GraphControls = ({
             onClick={onClear}
           >
             Clear Graph
+          </button>
+          <button 
+            className="btn btn-warning" 
+            onClick={() => {
+              console.log('=== FILTER TEST DEBUG ===');
+              console.log('Node types:', nodeTypes);
+              console.log('Organism filter:', organismFilter);
+              console.log('Phenomenon filter:', phenomenonFilter);
+              console.log('Platform filter:', platformFilter);
+              console.log('Date range:', { dateFrom, dateTo });
+              console.log('Filter limit:', filterLimit);
+              
+              // Test the filter function directly
+              const filterParams = {
+                node_types: Object.entries(nodeTypes)
+                  .filter(([_, selected]) => selected)
+                  .map(([type, _]) => type),
+                organism: organismFilter.trim() || null,
+                phenomenon: phenomenonFilter.trim() || null,
+                platform: platformFilter.trim() || null,
+                date_from: dateFrom || null,
+                date_to: dateTo || null,
+                limit: filterLimit
+              };
+              
+              console.log('Filter params to be sent:', filterParams);
+              
+              if (onFilter) {
+                console.log('Applying filters...');
+                onFilter(filterParams);
+              } else {
+                console.log('onFilter function not available');
+              }
+            }}
+          >
+            Test Filters
           </button>
         </div>
       </div>

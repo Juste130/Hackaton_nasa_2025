@@ -9,6 +9,53 @@
   box-sizing: border-box;
 }
 
+/* Active Filters Summary */
+.active-filters-summary {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #e3f2fd;
+  border-radius: 6px;
+  border-left: 4px solid #2196f3;
+}
+
+.active-filters-summary h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #1976d2;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #2196f3;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.filter-tag button {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 0.4rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.filter-tag button:hover {
+  opacity: 0.7;
+}
+
 .control-group {
   margin-bottom: 1.5rem;
   padding: 1rem;

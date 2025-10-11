@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AISummaryPanel from "../components/AISummaryPanel";
 import DataTable from "../components/DataTable";
 import GraphControls from "../components/GraphControls";
@@ -93,6 +93,37 @@ const Explorer = () => {
     }
   }, [activeView, selectedOrganism, selectedPhenomenon]);
 
+  // Fonction pour synchroniser et déclencher les filtres
+  const handleSidebarFilterChange = useCallback((filterType, value) => {
+    console.log(`🔄 Sidebar filter changed: ${filterType} = ${value}`);
+    
+    if (filterType === 'organism') {
+      setSelectedOrganism(value);
+    } else if (filterType === 'phenomenon') {
+      setSelectedPhenomenon(value);
+    }
+    
+    // Si on est en mode graph, appliquer immédiatement
+    if (activeView === "graph") {
+      const newFilters = {
+        node_types: ["Publication", "Organism", "Phenomenon"],
+        organism: filterType === 'organism' ? value : selectedOrganism,
+        phenomenon: filterType === 'phenomenon' ? value : selectedPhenomenon,
+        limit: 100
+      };
+      
+      // Nettoyer les valeurs vides
+      Object.keys(newFilters).forEach(key => {
+        if (!newFilters[key] || newFilters[key] === "") {
+          newFilters[key] = null;
+        }
+      });
+      
+      console.log('🎯 Applying sidebar filters to graph:', newFilters);
+      fetchGraph(newFilters, 'filter');
+    }
+  }, [activeView, selectedOrganism, selectedPhenomenon, fetchGraph]);
+
   const selectedPubData = publications.filter((pub) =>
     selectedPublications.includes(pub.id)
   );
@@ -133,8 +164,8 @@ const Explorer = () => {
             phenomena={phenomena}
             selectedOrganism={selectedOrganism}
             selectedPhenomenon={selectedPhenomenon}
-            onOrganismChange={setSelectedOrganism}
-            onPhenomenonChange={setSelectedPhenomenon}
+            onOrganismChange={(value) => handleSidebarFilterChange('organism', value)}
+            onPhenomenonChange={(value) => handleSidebarFilterChange('phenomenon', value)}
             loading={filtersLoading}
           />
 
