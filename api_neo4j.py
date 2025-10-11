@@ -8,20 +8,19 @@ from typing import List, Dict, Optional, Any, Union
 from enum import Enum
 import logging
 from neo4j_client import Neo4jClient
-from neo4j_queries import KnowledgeGraphAnalytics
+from neo4j_queries import KnowledgeGraphAnalytics, GapAnalyzer
 from search_engine import HybridSearchEngine, SearchMode
 from neo4j.time import DateTime as Neo4jDateTime
 from datetime import datetime
 import asyncio
-from redis_cache import get_cache
 
 logger = logging.getLogger(__name__)
 
 # Initialize clients
 neo4j_client = Neo4jClient()
 analytics = KnowledgeGraphAnalytics(neo4j_client)
+gap_analyzer = GapAnalyzer(neo4j_client)
 search_engine = HybridSearchEngine()
-cache = get_cache()
 
 router = APIRouter(prefix="/api/graph", tags=["Knowledge Graph"])
 
@@ -214,14 +213,6 @@ async def get_full_graph(
 ):
     """Get full knowledge graph with optional limit"""
     try:
-        # Cache pour 15 minutes (900 secondes)
-        cache_key = cache._generate_key('api:graph:full', limit=limit, include_isolated=include_isolated)
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            logger.info(f" Using cached full graph (limit={limit}, isolated={include_isolated})")
-            return cached_result
-        logger.info(f" Fetching full graph from Neo4j (limit={limit}, isolated={include_isolated})...")
-        
         with neo4j_client.driver.session() as session:
             # Get nodes with their degree (connection count)
             isolation_filter = "WHERE degree > 0" if not include_isolated else ""
@@ -313,12 +304,7 @@ async def get_full_graph(
             
             # Serialize the entire response
             result = GraphData(nodes=nodes, edges=edges, stats=stats)
-            serialized_result = serialize_neo4j_types(result.dict())
-            
-            # Cache pour 15 minutes
-            cache.set(cache_key, serialized_result, ttl=900)
-            
-            return serialized_result
+            return serialize_neo4j_types(result.dict())
     
     except Exception as e:
         logger.error(f"Full graph error: {e}", exc_info=True)
@@ -467,9 +453,12 @@ async def filter_graph(request: FilterRequest):
                 where_conditions.append(f"({label_conditions})")
             
             if request.organism:
+                # More precise organism filtering - check for exact match or specific patterns
                 where_conditions.append(
-                    "(toLower(n.name) CONTAINS toLower($organism) OR "
-                    "toLower(n.scientific_name) CONTAINS toLower($organism))"
+                    "(toLower(n.name) = toLower($organism) OR "
+                    "toLower(n.scientific_name) = toLower($organism) OR "
+                    "(toLower(n.name) CONTAINS toLower($organism) AND 'Organism' IN labels(n)) OR "
+                    "(toLower(n.scientific_name) CONTAINS toLower($organism) AND 'Organism' IN labels(n)))"
                 )
                 params['organism'] = request.organism
             
@@ -491,16 +480,42 @@ async def filter_graph(request: FilterRequest):
             
             where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
             
-            # Get filtered nodes
-            node_query = f"""
-                MATCH (n)
-                {where_clause}
-                OPTIONAL MATCH (n)-[r]-()
-                WITH n, count(r) as degree
-                RETURN n, degree, labels(n) as labels
-                ORDER BY degree DESC
-                LIMIT $limit
-            """
+            # Get filtered nodes with more precise filtering
+            if request.organism:
+                # If organism is specified, prioritize getting that organism and related publications
+                node_query = f"""
+                    // First get the specific organism
+                    MATCH (o:Organism)
+                    WHERE toLower(o.name) = toLower($organism) OR 
+                          toLower(o.scientific_name) = toLower($organism) OR
+                          (toLower(o.name) CONTAINS toLower($organism) AND size(o.name) <= size($organism) + 10)
+                    WITH collect(o) as organisms
+                    
+                    // Then get publications studying these organisms
+                    UNWIND organisms as organism
+                    MATCH (p:Publication)-[:STUDIES]->(organism)
+                    WITH organisms + collect(DISTINCT p) as filtered_nodes
+                    
+                    // Add related entities if requested
+                    UNWIND filtered_nodes as n
+                    OPTIONAL MATCH (n)-[r]-()
+                    WITH n, count(r) as degree
+                    WHERE {" AND ".join(where_conditions[1:]) if len(where_conditions) > 1 else "1=1"}
+                    RETURN n, degree, labels(n) as labels
+                    ORDER BY degree DESC
+                    LIMIT $limit
+                """
+            else:
+                # Standard filtering for other cases
+                node_query = f"""
+                    MATCH (n)
+                    {where_clause}
+                    OPTIONAL MATCH (n)-[r]-()
+                    WITH n, count(r) as degree
+                    RETURN n, degree, labels(n) as labels
+                    ORDER BY degree DESC
+                    LIMIT $limit
+                """
             
             params['limit'] = request.limit
             node_result = session.run(node_query, **params)
@@ -676,13 +691,6 @@ async def get_node_details(
 async def get_graph_stats():
     """Get comprehensive graph statistics"""
     try:
-        # Cache pour 10 minutes (600 secondes)
-        cache_key = cache._generate_key('api:graph:stats')
-        cached_result = cache.get(cache_key)
-        if cached_result is not None:
-            logger.debug(" Using cached graph stats")
-            return cached_result
-        
         stats = neo4j_client.get_stats()
         
         # Add analytics data
@@ -715,12 +723,7 @@ async def get_graph_stats():
             }
         }
         
-        serialized_result = serialize_neo4j_types(result)
-        
-        # Cache pour 10 minutes
-        cache.set(cache_key, serialized_result, ttl=600)
-        
-        return serialized_result
+        return serialize_neo4j_types(result)
     
     except Exception as e:
         logger.error(f"Stats error: {e}", exc_info=True)
@@ -741,3 +744,94 @@ async def health_check():
             "status": "unhealthy",
             "error": str(e)
         }
+
+# --- GAP ANALYSIS ENDPOINTS ---
+
+@router.get("/gap-analysis/missing-combinations")
+async def get_missing_combinations(limit: int = Query(100, ge=1, le=500)):
+    """Get missing organism-phenomenon-platform combinations"""
+    try:
+        gaps = gap_analyzer.find_missing_combinations(limit=limit)
+        return {
+            "status": "success",
+            "data": gaps,
+            "total": len(gaps)
+        }
+    except Exception as e:
+        logger.error(f"Error getting missing combinations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gap-analysis/completeness-matrix")
+async def get_completeness_matrix():
+    """Get research completeness matrix by biological system"""
+    try:
+        matrix = gap_analyzer.calculate_completeness_matrix()
+        return {
+            "status": "success",
+            "data": matrix
+        }
+    except Exception as e:
+        logger.error(f"Error getting completeness matrix: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gap-analysis/mars-critical-gaps")
+async def get_mars_critical_gaps():
+    """Get critical research gaps for Mars mission preparation"""
+    try:
+        gaps = gap_analyzer.find_critical_gaps_for_mars()
+        return {
+            "status": "success",
+            "data": gaps,
+            "total": len(gaps)
+        }
+    except Exception as e:
+        logger.error(f"Error getting Mars critical gaps: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gap-analysis/priority-matrix")
+async def get_research_priority_matrix():
+    """Get research priority matrix (importance vs knowledge)"""
+    try:
+        matrix = gap_analyzer.get_research_priority_matrix()
+        return {
+            "status": "success",
+            "data": matrix
+        }
+    except Exception as e:
+        logger.error(f"Error getting priority matrix: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/gap-analysis/3d-cube-data")
+async def get_3d_cube_data():
+    """Get data for 3D cube visualization of organism x phenomenon x platform"""
+    try:
+        # Combine multiple gap analysis methods for comprehensive view
+        missing = gap_analyzer.find_missing_combinations(limit=500)
+        matrix = gap_analyzer.calculate_completeness_matrix()
+        
+        # Get all unique dimensions
+        organisms = set()
+        phenomena = set()
+        platforms = set()
+        
+        for gap in missing:
+            organisms.add(gap.get('organism', 'Unknown'))
+            phenomena.add(gap.get('phenomenon', 'Unknown'))
+            platforms.add(gap.get('platform', 'Unknown'))
+        
+        return {
+            "status": "success",
+            "data": {
+                "missing_combinations": missing,
+                "completeness_matrix": matrix,
+                "dimensions": {
+                    "organisms": sorted(list(organisms)),
+                    "phenomena": sorted(list(phenomena)),
+                    "platforms": sorted(list(platforms))
+                },
+                "total_missing": len(missing)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting 3D cube data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
