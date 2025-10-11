@@ -216,10 +216,26 @@ export const useD3Graph = (containerRef, data, options = {}) => {
       .style('pointer-events', 'none')
       .text(d => {
         if (d.label === 'Publication') {
-          const title = d.properties?.title || d.id;
-          return title.length > 30 ? title.substring(0, 30) + '...' : title;
+      // 🔥 LOGIQUE AMÉLIORÉE pour récupérer le titre
+      const title = d.properties?.title || d.title || d.properties?.name || 'Untitled';
+      
+      // Si le titre est long, le tronquer intelligemment
+      if (title.length > 25) {
+        // Tronquer à 25 caractères et ajouter "..."
+        // Mais essayer de couper à un espace pour plus de propreté
+        const truncated = title.substring(0, 25);
+        const lastSpace = truncated.lastIndexOf(' ');
+        
+        if (lastSpace > 15) { // S'il y a un espace après 15 caractères
+          return truncated.substring(0, lastSpace) + '...';
         }
+        return truncated + '...';
+      }
+      
+      return title;
+    } else {
         return d.properties?.name || d.properties?.scientific_name || d.id;
+      }
       });
 
     // Close tooltip on background click
