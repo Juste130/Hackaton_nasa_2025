@@ -4,8 +4,7 @@ A comprehensive AI-powered system for analyzing NASA space biology publications 
 
 
 Production API Swagger : https://ai.apollon.essogbe.me/docs
-Original Repo : 
-## Overview
+
 
 This project provides intelligent analysis of NASA space biology research through:
 - **Knowledge Graph**: Neo4j-based graph database for research relationships
