@@ -13,7 +13,7 @@ from src.services.search_engine import HybridSearchEngine, SearchMode
 from neo4j.time import DateTime as Neo4jDateTime
 from datetime import datetime
 import asyncio
-from redis_cache import cache_neo4j_query
+from src.utils.redis_cache import cache_neo4j_query
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +177,8 @@ def format_edge(record: Dict) -> GraphEdge:
     
     # Clean properties and serialize Neo4j types
     properties = serialize_neo4j_types(dict(rel) if isinstance(rel, dict) else {})
-    properties.pop('type', None)
+    if isinstance(properties, dict):
+        properties.pop('type', None)
     
     edge_id = f"{source_id}_{rel_type}_{target_id}"
     weight = properties.get('similarity', properties.get('confidence', 1.0))
