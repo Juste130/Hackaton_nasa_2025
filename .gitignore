@@ -8,21 +8,55 @@ wheels/
 
 # Virtual environments
 .venv
-lib/
 .env
+lib/
+docs/
+# Development files
 aislop*
 fix*.py
-challenge.md
-strategy.md
-#*.txt
 migrate*
 quick.py
 update*
 verify*
-*.db
-frontend/node_modules
-AI/
-dspy_inspect*
 example*
 requirements_*
-*ai*
+
+# Data files
+*.db
+*.json
+*.txt
+
+# Frontend (illustrative only)
+frontend/node_modules
+frontend/build
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary organization script
+organize_repo.sh
+
+# Legacy structure (will be removed)
+AI/
+scripts/clean*
+scripts/setup_*
+
+*slop.py
+
+*_SUMMARY.md
