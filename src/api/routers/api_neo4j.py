@@ -13,6 +13,7 @@ from src.services.search_engine import HybridSearchEngine, SearchMode
 from neo4j.time import DateTime as Neo4jDateTime
 from datetime import datetime
 import asyncio
+from redis_cache import cache_neo4j_query
 
 logger = logging.getLogger(__name__)
 
@@ -206,6 +207,7 @@ def get_id_property(label: str) -> str:
 
 # === API Endpoints ===
 
+@cache_neo4j_query('neo4j:full_graph', ttl=1800)  # 30 minutes cache
 @router.get("/full", response_model=GraphData)
 async def get_full_graph(
     limit: int = Query(100, description="Max nodes to return"),
@@ -443,34 +445,18 @@ async def filter_graph(request: FilterRequest):
     """Get filtered graph based on criteria"""
     try:
         with neo4j_client.driver.session() as session:
-            # Build filter conditions
+            # Build filter conditions for non-entity filters only
             where_conditions = []
             params = {}
             
-            if request.node_types:
+            # Only add these to WHERE clause for general node filtering (when no specific entity filters)
+            if request.node_types and not (request.organism or request.phenomenon or request.platform):
                 node_labels = [nt.value for nt in request.node_types]
                 label_conditions = " OR ".join([f"'{label}' IN labels(n)" for label in node_labels])
                 where_conditions.append(f"({label_conditions})")
             
-            if request.organism:
-                # More precise organism filtering - check for exact match or specific patterns
-                where_conditions.append(
-                    "(toLower(n.name) = toLower($organism) OR "
-                    "toLower(n.scientific_name) = toLower($organism) OR "
-                    "(toLower(n.name) CONTAINS toLower($organism) AND 'Organism' IN labels(n)) OR "
-                    "(toLower(n.scientific_name) CONTAINS toLower($organism) AND 'Organism' IN labels(n)))"
-                )
-                params['organism'] = request.organism
-            
-            if request.phenomenon:
-                where_conditions.append("toLower(n.name) CONTAINS toLower($phenomenon)")
-                params['phenomenon'] = request.phenomenon
-            
-            if request.platform:
-                where_conditions.append("toLower(n.name) CONTAINS toLower($platform)")
-                params['platform'] = request.platform
-            
-            if request.date_from or request.date_to:
+            # Date filtering only for publications in general filtering
+            if (request.date_from or request.date_to) and not (request.organism or request.phenomenon or request.platform):
                 if request.date_from:
                     where_conditions.append("n.publication_date >= $date_from")
                     params['date_from'] = request.date_from
@@ -478,35 +464,127 @@ async def filter_graph(request: FilterRequest):
                     where_conditions.append("n.publication_date <= $date_to")
                     params['date_to'] = request.date_to
             
+            # Set organism/phenomenon/platform parameters for entity filtering
+            if request.organism:
+                params['organism'] = request.organism
+            if request.phenomenon:
+                params['phenomenon'] = request.phenomenon
+            if request.platform:
+                params['platform'] = request.platform
+            
             where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
             
-            # Get filtered nodes with more precise filtering
-            if request.organism:
-                # If organism is specified, prioritize getting that organism and related publications
+            # Simplified filtering approach that works for all cases
+            if request.organism or request.phenomenon or request.platform:
+                # Entity-based filtering: get entities and their related publications
+                filters = []
+                filter_joins = []
+                
+                if request.organism:
+                    filters.append("""
+                        // Get organisms matching the filter
+                        MATCH (org:Organism)
+                        WHERE (toLower(org.name) = toLower($organism) OR 
+                               toLower(org.scientific_name) = toLower($organism) OR 
+                               toLower(org.name) CONTAINS toLower($organism) OR 
+                               toLower(org.scientific_name) CONTAINS toLower($organism))
+                        WITH collect(DISTINCT org) as organisms
+                        
+                        // Get publications that study these organisms
+                        UNWIND organisms as org
+                        OPTIONAL MATCH (pub:Publication)-[:STUDIES]->(org)
+                        WITH organisms, collect(DISTINCT pub) as organism_pubs
+                        WITH organisms + [p IN organism_pubs WHERE p IS NOT NULL] as organism_results
+                    """)
+                    filter_joins.append("organism_results")
+                
+                if request.phenomenon:
+                    filters.append("""
+                        // Get phenomena matching the filter
+                        MATCH (phen:Phenomenon)
+                        WHERE toLower(phen.name) CONTAINS toLower($phenomenon)
+                        WITH collect(DISTINCT phen) as phenomena
+                        
+                        // Get publications that investigate these phenomena
+                        UNWIND phenomena as phen
+                        OPTIONAL MATCH (pub:Publication)-[:INVESTIGATES]->(phen)
+                        WITH phenomena, collect(DISTINCT pub) as phenomenon_pubs
+                        WITH phenomena + [p IN phenomenon_pubs WHERE p IS NOT NULL] as phenomenon_results
+                    """)
+                    filter_joins.append("phenomenon_results")
+                
+                if request.platform:
+                    filters.append("""
+                        // Get platforms matching the filter
+                        MATCH (plat:Platform)
+                        WHERE toLower(plat.name) CONTAINS toLower($platform)
+                        WITH collect(DISTINCT plat) as platforms
+                        
+                        // Get publications conducted on these platforms
+                        UNWIND platforms as plat
+                        OPTIONAL MATCH (pub:Publication)-[:CONDUCTED_ON]->(plat)
+                        WITH platforms, collect(DISTINCT pub) as platform_pubs
+                        WITH platforms + [p IN platform_pubs WHERE p IS NOT NULL] as platform_results
+                    """)
+                    filter_joins.append("platform_results")
+                
+                # Combine all filters
+                combined_filters = "\n".join(filters)
+                
+                if len(filter_joins) == 1:
+                    # Single filter
+                    result_collection = filter_joins[0]
+                    intersection_logic = f"UNWIND {result_collection} as node"
+                else:
+                    # Multiple filters - find intersection
+                    with_clause = f"WITH {', '.join(filter_joins)}"
+                    intersection_logic = f"""
+                        {with_clause}
+                        // Find nodes that appear in all filter results
+                        UNWIND {filter_joins[0]} as node
+                        WHERE ALL(collection IN [{', '.join(filter_joins[1:])}] WHERE node IN collection)
+                    """
+                
                 node_query = f"""
-                    // First get the specific organism
-                    MATCH (o:Organism)
-                    WHERE toLower(o.name) = toLower($organism) OR 
-                          toLower(o.scientific_name) = toLower($organism) OR
-                          (toLower(o.name) CONTAINS toLower($organism) AND size(o.name) <= size($organism) + 10)
-                    WITH collect(o) as organisms
+                    {combined_filters}
                     
-                    // Then get publications studying these organisms
-                    UNWIND organisms as organism
-                    MATCH (p:Publication)-[:STUDIES]->(organism)
-                    WITH organisms + collect(DISTINCT p) as filtered_nodes
+                    {intersection_logic}
                     
-                    // Add related entities if requested
-                    UNWIND filtered_nodes as n
-                    OPTIONAL MATCH (n)-[r]-()
-                    WITH n, count(r) as degree
-                    WHERE {" AND ".join(where_conditions[1:]) if len(where_conditions) > 1 else "1=1"}
-                    RETURN n, degree, labels(n) as labels
+                    // Apply node type filtering
+                    WHERE CASE 
+                        WHEN $node_types_filter IS NULL THEN true
+                        ELSE any(label IN labels(node) WHERE label IN $node_types_filter)
+                    END
+                    
+                    // Apply date filtering for publications
+                    AND CASE
+                        WHEN 'Publication' IN labels(node) AND $date_from IS NOT NULL THEN node.publication_date >= $date_from
+                        ELSE true
+                    END
+                    AND CASE
+                        WHEN 'Publication' IN labels(node) AND $date_to IS NOT NULL THEN node.publication_date <= $date_to
+                        ELSE true
+                    END
+                    
+                    // Get degree and return
+                    OPTIONAL MATCH (node)-[r]-()
+                    WITH node, count(r) as degree
+                    RETURN DISTINCT node as n, degree, labels(node) as labels
                     ORDER BY degree DESC
                     LIMIT $limit
                 """
+                
+                # Set parameters
+                if request.node_types:
+                    params['node_types_filter'] = [nt.value for nt in request.node_types]
+                else:
+                    params['node_types_filter'] = None
+                    
+                params['date_from'] = request.date_from
+                params['date_to'] = request.date_to
+                
             else:
-                # Standard filtering for other cases
+                # No specific entity filters, use standard filtering
                 node_query = f"""
                     MATCH (n)
                     {where_clause}
@@ -687,6 +765,7 @@ async def get_node_details(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@cache_neo4j_query('neo4j:graph_stats', ttl=600)  # 10 minutes cache for stats
 @router.get("/stats")
 async def get_graph_stats():
     """Get comprehensive graph statistics"""
@@ -747,6 +826,7 @@ async def health_check():
 
 # --- GAP ANALYSIS ENDPOINTS ---
 
+@cache_neo4j_query('gap_analysis:missing_combinations', ttl=7200)  # 2 hours cache
 @router.get("/gap-analysis/missing-combinations")
 async def get_missing_combinations(limit: int = Query(100, ge=1, le=500)):
     """Get missing organism-phenomenon-platform combinations"""
@@ -761,6 +841,7 @@ async def get_missing_combinations(limit: int = Query(100, ge=1, le=500)):
         logger.error(f"Error getting missing combinations: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@cache_neo4j_query('gap_analysis:completeness_matrix', ttl=3600)  # 1 hour cache
 @router.get("/gap-analysis/completeness-matrix")
 async def get_completeness_matrix():
     """Get research completeness matrix by biological system"""
@@ -774,6 +855,7 @@ async def get_completeness_matrix():
         logger.error(f"Error getting completeness matrix: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@cache_neo4j_query('gap_analysis:mars_critical_gaps', ttl=3600)  # 1 hour cache
 @router.get("/gap-analysis/mars-critical-gaps")
 async def get_mars_critical_gaps():
     """Get critical research gaps for Mars mission preparation"""
@@ -788,6 +870,7 @@ async def get_mars_critical_gaps():
         logger.error(f"Error getting Mars critical gaps: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@cache_neo4j_query('gap_analysis:priority_matrix', ttl=3600)  # 1 hour cache
 @router.get("/gap-analysis/priority-matrix")
 async def get_research_priority_matrix():
     """Get research priority matrix (importance vs knowledge)"""
@@ -801,6 +884,7 @@ async def get_research_priority_matrix():
         logger.error(f"Error getting priority matrix: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@cache_neo4j_query('gap_analysis:3d_cube_data', ttl=7200)  # 2 hours cache
 @router.get("/gap-analysis/3d-cube-data")
 async def get_3d_cube_data():
     """Get data for 3D cube visualization of organism x phenomenon x platform"""
@@ -834,4 +918,64 @@ async def get_3d_cube_data():
         }
     except Exception as e:
         logger.error(f"Error getting 3D cube data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- CACHE MANAGEMENT ENDPOINTS ---
+
+@router.post("/cache/clear-gap-analysis")
+async def clear_gap_analysis_cache():
+    """Clear all gap analysis cache entries"""
+    try:
+        from redis_cache import get_cache
+        cache = get_cache()
+        
+        if not cache.enabled:
+            return {
+                "status": "info",
+                "message": "Cache is not enabled",
+                "cleared": 0
+            }
+        
+        # Clear all gap analysis cache entries
+        patterns = [
+            'gap_analysis:*',
+            'neo4j:graph_stats*',
+            'neo4j:full_graph*'
+        ]
+        
+        total_cleared = 0
+        for pattern in patterns:
+            cleared = cache.clear_pattern(pattern)
+            total_cleared += cleared
+            logger.info(f"Cleared {cleared} cache entries for pattern: {pattern}")
+        
+        return {
+            "status": "success",
+            "message": f"Cleared {total_cleared} cache entries",
+            "patterns_cleared": patterns,
+            "cleared": total_cleared
+        }
+    
+    except Exception as e:
+        logger.error(f"Error clearing gap analysis cache: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/cache/stats")
+async def get_cache_stats():
+    """Get cache statistics"""
+    try:
+        from redis_cache import get_cache
+        cache = get_cache()
+        
+        stats = cache.get_stats()
+        
+        return {
+            "status": "success",
+            "cache_stats": stats
+        }
+    
+    except Exception as e:
+        logger.error(f"Error getting cache stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
