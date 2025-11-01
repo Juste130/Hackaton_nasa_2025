@@ -2,6 +2,9 @@
 
 A comprehensive AI-powered system for analyzing NASA space biology publications using knowledge graphs, semantic search, and intelligent research assistance.
 
+
+Production API Swagger : https://ai.apollon.essogbe.me/docs
+Original Repo : 
 ## Overview
 
 This project provides intelligent analysis of NASA space biology research through:
@@ -36,10 +39,8 @@ nasa_final/
 
 ## Quick Start
 
-##  Quick Start
-
 ### Prerequisites
-- Python 3.9+
+- Python 3.12+
 - PostgreSQL
 - Neo4j  
 - Redis
@@ -52,7 +53,7 @@ git clone <repository>
 cd nasa_final
 uv venv
 source .venv/bin/activate  # Linux/Mac
-uv pip install -r requirements.txt
+uv sync 
 ```
 
 **Traditional installation**
@@ -71,6 +72,26 @@ cp .env.example .env
 ```
 
 ### Database Setup
+
+**Option 1: Cloud Databases (Free)**
+- **Neo4j Aura**: Create free graph database at [console.neo4j.io](https://console.neo4j.io)
+  - Select "AuraDB Free" tier (up to 200k nodes, 400k relationships)
+  - Get connection URL format: `neo4j+s://xxxxx.databases.neo4j.io`
+- **Neon PostgreSQL**: Create free database at [neon.tech](https://neon.tech)
+  - Includes pgvector extension support
+  - Get connection URL format: `postgresql://user:pass@ep-xxx.neon.tech/neondb`
+- **Redis**: Use [Upstash Redis](https://upstash.com) free tier
+
+**Option 2: Docker (Local Development)**
+```bash
+# Start all databases with Docker Compose
+docker-compose up -d
+
+# Check services are running
+docker-compose ps
+```
+
+**Option 3: Manual Setup**
 Create required databases and start services:
 - PostgreSQL: Create database 'nasa_publications'
 - Neo4j: Start Neo4j server
@@ -144,26 +165,6 @@ Advanced AI services for research assistance:
 - Research recommendation based on knowledge gaps
 - Abstract generation for new research proposals
 
-## Performance
-
-- **Database**: 608 NASA publications indexed
-- **Knowledge Graph**: 10k+ entities, 50k+ relationships  
-- **Search**: Sub-second semantic search
-- **AI**: GPT-4 powered with specialized prompts
-
-## Testing
-
-Run the test suite:
-```bash
-python -m pytest tests/
-```
-
-Test specific components:
-```bash
-python tests/test_api.py
-python tests/test_database.py
-python tests/test_rag.py
-```
 
 ## API Usage
 
@@ -195,13 +196,6 @@ curl http://localhost:8000/api/graph/filter \
   -G -d "organism=Mus musculus" -d "phenomenon=muscle atrophy"
 ```
 
-##  Performance
-
-- **Database**: 608 NASA publications indexed
-- **Knowledge Graph**: 10k+ entities, 50k+ relationships
-- **Search**: Sub-second semantic search
-- **AI**: GPT-4 powered with specialized prompts
-
 ## Development
 
 ### Adding New AI Agents
@@ -220,25 +214,15 @@ curl http://localhost:8000/api/graph/filter \
 2. Create migration in `data/migrations/`
 3. Update Neo4j schema in `src/database/neo4j_schema.py`
 
-## License
+## Future Improvements
 
-This project is developed for NASA space biology research purposes.
+### Enhanced Gap Analysis
+- Better gap detection algorithms
+- Automatic gap prioritization
+- Visual gap analysis dashboard
 
-## Contributing
+### Deep Content Analysis
+- Full-text publication analysis
+- Research methodology extraction
+- Cross-publication insights
 
-1. Fork the repository
-2. Create feature branch
-3. Follow code style guidelines
-4. Add tests for new features
-5. Submit pull request
-
-## Support
-
-For issues and questions:
-- Check existing issues in repository
-- Review documentation in `docs/`
-- Contact development team
-
----
-
-Built for NASA space biology research
