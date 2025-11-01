@@ -1,0 +1,34 @@
+[project]
+name = "nasa-final"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "dotenv>=0.9.9",
+    "dspy>=3.0.3",
+    "fastapi>=0.120.4",
+    "neo4j>=6.0.2",
+    "nest-asyncio>=1.6.0",
+    "pandas>=2.3.3",
+    "pgvector>=0.4.1",
+    "psycopg2>=2.9.11",
+    "psycopg2-binary>=2.9.11",
+    "redis>=7.0.1",
+    "sentence-transformers>=5.1.2",
+    "sqlalchemy>=2.0.44",
+    "torch>=2.9.0",
+    "uvicorn>=0.38.0",
+]
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu" },
+]
+torchvision = [
+  { index = "pytorch-cpu" },
+]
